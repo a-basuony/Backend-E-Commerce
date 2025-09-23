@@ -1,7 +1,11 @@
 {
+  "name": "e-commerce-backend",
+  "version": "1.0.0",
+  "main": "server.js",
   "dependencies": {
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "mongoose": "^8.18.2",
     "morgan": "^1.10.1"
   },
   "devDependencies": {
@@ -10,10 +14,7 @@
   "scripts": {
     "dev": "nodemon server.js"
   },
-  "name": "e-commerce-backend",
   "description": "��#\u0000 \u0000B\u0000a\u0000c\u0000k\u0000e\u0000n\u0000d\u0000-\u0000E\u0000-\u0000C\u0000o\u0000m\u0000m\u0000e\u0000r\u0000c\u0000e\u0000\r\u0000 \u0000",
-  "version": "1.0.0",
-  "main": "server.js",
   "keywords": [],
   "author": "",
   "license": "ISC"

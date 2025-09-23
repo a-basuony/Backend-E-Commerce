@@ -2,9 +2,13 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 
-const app = express();
-dotenv.config({ path: "config.env" }); // load first ✅
+const connectDB = require("./config/db");
+const categoryRouter = require("./routes/category.route");
 
+const app = express();
+dotenv.config(); // load first ✅
+
+// Dev logging middleware
 const NODE_ENV = process.env.NODE_ENV || "development";
 
 if (NODE_ENV === "development") {
@@ -12,14 +16,19 @@ if (NODE_ENV === "development") {
   console.log(`mode: ${NODE_ENV}`);
 }
 
-app.get("/hello-again", (req, res) => {
-  res.send("hello, world");
-});
+// Mount routes
+
+app.use("/api/v1/category", categoryRouter);
 
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
-  console.log("NODE_ENV is:", NODE_ENV);
-
-  console.log(`server is running on port ${PORT}`);
-});
+connectDB()
+  .then(() => {
+    // Start server only after DB is connected
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT} and Database connected`);
+    });
+  })
+  .catch((error) => {
+    console.error("❌ DB connection error:", error.message);
+  });
