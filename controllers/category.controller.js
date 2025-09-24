@@ -31,9 +31,7 @@ exports.getCategories = async (req, res) => {
 exports.getCategory = async (req, res) => {
   try {
     const categoryId = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({ message: "Invalid category ID" });
-    }
+
     const category = await Category.findById(categoryId);
     if (!category) {
       return res.status(404).json({ message: "category not found " });
@@ -48,8 +46,8 @@ exports.getCategory = async (req, res) => {
 // create category
 exports.createCategory = async (req, res) => {
   try {
-    const { name } = req.body;
-    const category = await Category.create({ name });
+    const { name, slug, image } = req.body;
+    const category = await Category.create({ name, slug, image });
     res.status(201).json({ message: "creating category", data: category });
   } catch (error) {
     // التعامل مع duplicate key error
