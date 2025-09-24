@@ -21,6 +21,16 @@ if (NODE_ENV === "development") {
 
 app.use("/api/v1/category", categoryRouter);
 
+// Error handling middleware
+app.use((error, req, res, next) => {
+  const statusCode = error.statusCode || 500;
+  console.error("🔥 Error:", err.message);
+
+  res.status(statusCode).json({
+    message: error.message || "Internal Server Error",
+  });
+});
+
 const PORT = process.env.PORT || 8000;
 
 connectDB()
