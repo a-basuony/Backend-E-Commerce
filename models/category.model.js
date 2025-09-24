@@ -15,6 +15,10 @@ const categorySchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+    image: {
+      type: String,
+      default: "no-image.jpg",
+    },
   },
   { timestamps: true } // createdAt and updatedAt
 );
