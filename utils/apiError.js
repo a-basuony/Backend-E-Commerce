@@ -29,9 +29,6 @@ class ApiError extends Error {
 
     // Marks this error as "operational" (predictable and safe for client)
     this.isOperational = true;
-
-    // Capture stack trace (excluding this constructor) for cleaner error logs
-    // Error.captureStackTrace(this, this.constructor);
   }
 }
 

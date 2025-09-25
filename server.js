@@ -27,18 +27,17 @@ app.use((req, res, next) => {
   next(new ApiError("Route not found", 404));
 });
 
-// ---------- we can't use this anymore
-// app.all("*", (req, res, next) => {
-//   next(new ApiError("Route not found", 404));
-// });
-
 // Global Error handling middleware
 app.use((error, req, res, next) => {
   const statusCode = error.statusCode || 500;
-  console.error("🔥 Error:", err.message);
+  console.error("🔥 Error:", error.message);
 
   res.status(statusCode).json({
+    status: error.status || "error",
     message: error.message || "Internal Server Error",
+    stack: error.stack,
+    // Optional: stack trace in development mode
+    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
   });
 });
 
