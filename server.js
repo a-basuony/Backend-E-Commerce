@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const connectDB = require("./config/db");
 const categoryRouter = require("./routes/category.route");
 const ApiError = require("./utils/apiError");
+const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 
 const app = express();
 dotenv.config(); // load first ✅
@@ -22,25 +23,12 @@ if (NODE_ENV === "development") {
 
 app.use("/api/v1/category", categoryRouter);
 
-// 404 Error handling middleware
-app.use((req, res, next) => {
-  next(new ApiError("Route not found", 404));
-});
-
+// Not Found middleware
+app.use(notFound);
 // Global Error handling middleware
-app.use((error, req, res, next) => {
-  const statusCode = error.statusCode || 500;
-  console.error("🔥 Error:", error.message);
+app.use(errorHandler);
 
-  res.status(statusCode).json({
-    status: error.status || "error",
-    message: error.message || "Internal Server Error",
-    stack: error.stack,
-    // Optional: stack trace in development mode
-    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
-  });
-});
-
+// Start server
 const PORT = process.env.PORT || 8000;
 
 connectDB()

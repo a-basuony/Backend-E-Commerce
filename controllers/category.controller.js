@@ -35,7 +35,9 @@ exports.getCategory = asyncHandler(async (req, res, next) => {
   const category = await Category.findById(req.params.id);
 
   if (!category) {
-    return next(new ApiError("Category not found", 404));
+    return next(
+      new ApiError(`Category not found for id: ${req.params.id}`, 404)
+    );
   }
 
   res.status(200).json({ message: "success", data: category });
@@ -65,7 +67,12 @@ exports.updateCategory = asyncHandler(async (req, res, next) => {
 
   const category = await Category.findById(req.params.id);
   if (!category) {
-    return next(new ApiError("Update failed : Category not found", 404));
+    return next(
+      new ApiError(
+        `Update failed : Category not found for id: ${req.params.id}`,
+        404
+      )
+    );
   }
 
   category.name = name || category.name;
@@ -81,7 +88,12 @@ exports.deleteCategory = asyncHandler(async (req, res, next) => {
   const category = await Category.findByIdAndDelete(req.params.id);
 
   if (!category) {
-    return next(new ApiError("Delete failed : Category not found", 404));
+    return next(
+      new ApiError(
+        `Delete failed : Category not found for id: ${req.params.id}`,
+        404
+      )
+    );
   }
 
   res.status(200).json({ message: "Category deleted", data: category });
