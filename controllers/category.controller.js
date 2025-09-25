@@ -1,4 +1,7 @@
 const Category = require("../models/category.model");
+const slugify = require("slugify");
+const asyncHandler = require("express-async-handler");
+const ApiError = require("../utils/apiError");
 
 //  * @desc Fetch a single category by its ID.
 //  *       Validates the ID and returns the category data if found.
@@ -9,32 +12,32 @@ const Category = require("../models/category.model");
 //  * @returns {object} JSON containing category details
 //  * @throws {Error} Invalid category ID or category not found
 
-exports.getCategories = async (req, res) => {
-  try {
-    const page = +req.query.page || 1;
-    const limit = +req.query.limit || 10;
+exports.getCategories = asyncHandler(async (req, res) => {
+  const page = +req.query.page || 1;
+  const limit = +req.query.limit || 10;
 
-    const categories = await Category.find()
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const total = await Category.countDocuments();
-    const totalPages = Math.ceil(total / limit);
+  const categories = await Category.find()
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+  const total = await Category.countDocuments();
+  const totalPages = Math.ceil(total / limit);
 
-    res.status(200).json({
-      message: "success",
-      data: categories,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: totalPages,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (!categories) {
+    return new ApiError("Categories not found", 404);
   }
-};
+
+  res.status(200).json({
+    message: "success",
+    data: categories,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: totalPages,
+    },
+  });
+});
 
 /**
  * @desc Fetch a single category by its ID.

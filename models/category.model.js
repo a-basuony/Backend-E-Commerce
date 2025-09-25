@@ -32,6 +32,7 @@ categorySchema.pre("save", function (next) {
 
 module.exports = mongoose.model("Category", categorySchema);
 
+// use asyncHandler to avoid try/catch block
 // ------------------
 // details of validations , roles  => get from system analysis document from your company
 ///------------------

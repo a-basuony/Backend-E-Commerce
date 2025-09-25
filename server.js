@@ -4,6 +4,7 @@ const morgan = require("morgan");
 
 const connectDB = require("./config/db");
 const categoryRouter = require("./routes/category.route");
+const ApiError = require("./utils/apiError");
 
 const app = express();
 dotenv.config(); // load first ✅
@@ -22,16 +23,14 @@ if (NODE_ENV === "development") {
 app.use("/api/v1/category", categoryRouter);
 
 // 404 Error handling middleware
-app.all("*", (req, res, next) => {
-  const error = new Error(`Route ${req.originalUrl} not found`);
-  error.statusCode = 404;
-  next(error);
-});
 app.use((req, res, next) => {
-  const error = new Error("API route not found");
-  error.statusCode = 404;
-  next(error); // for 500 middleware to handle it
+  next(new ApiError("Route not found", 404));
 });
+
+// ---------- we can't use this anymore
+// app.all("*", (req, res, next) => {
+//   next(new ApiError("Route not found", 404));
+// });
 
 // Global Error handling middleware
 app.use((error, req, res, next) => {
