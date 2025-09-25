@@ -21,7 +21,19 @@ if (NODE_ENV === "development") {
 
 app.use("/api/v1/category", categoryRouter);
 
-// Error handling middleware
+// 404 Error handling middleware
+app.all("*", (req, res, next) => {
+  const error = new Error(`Route ${req.originalUrl} not found`);
+  error.statusCode = 404;
+  next(error);
+});
+app.use((req, res, next) => {
+  const error = new Error("API route not found");
+  error.statusCode = 404;
+  next(error); // for 500 middleware to handle it
+});
+
+// Global Error handling middleware
 app.use((error, req, res, next) => {
   const statusCode = error.statusCode || 500;
   console.error("🔥 Error:", err.message);
