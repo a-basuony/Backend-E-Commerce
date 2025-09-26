@@ -5,7 +5,8 @@ const ApiError = require("../utils/apiError");
 const validatorMiddleware = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new ApiError(errors.array()[0].msg, 400));
+    // return next(new ApiError(errors.array(), 400));
+    return res.status(400).json({ errors: errors.array() });
   }
   next();
 };

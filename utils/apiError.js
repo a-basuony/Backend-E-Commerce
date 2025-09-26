@@ -12,11 +12,11 @@
  * // Example: Throw a 404 error if a category is not found
  * throw new ApiError("Category not found", 404);
  */
+/**
+ * @param {string} message - Human-readable error message for the client
+ * @param {number} [statusCode=500] - HTTP status code (defaults to 500)
+ */
 class ApiError extends Error {
-  /**
-   * @param {string} message - Human-readable error message for the client
-   * @param {number} [statusCode=500] - HTTP status code (defaults to 500)
-   */
   constructor(message, statusCode = 500) {
     // Call the built-in Error constructor with the message
     super(message);
