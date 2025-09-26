@@ -1,6 +1,7 @@
-const Category = require("../models/category.model");
-const slugify = require("slugify");
 const asyncHandler = require("express-async-handler");
+const slugify = require("slugify");
+
+const Category = require("../models/category.model");
 const ApiError = require("../utils/apiError");
 
 // @desc    Get all categories with pagination

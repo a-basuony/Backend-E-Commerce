@@ -1,4 +1,3 @@
-
 {
   "extends": ["airbnb", "prettier", "plugin:node/recommended"],
   "plugins": ["prettier"],
@@ -15,7 +14,7 @@
     "no-underscore-dangle": "off",
     "class-methods-use-this": "off",
     "no-undef": "error",
-    "prefer-destructuring": ["error", { "object": true, "array": false }],
+    "prefer-destructuring": ["warn", { "object": true, "array": false }],
     "no-unused-vars": ["warn", { "argsIgnorePattern": "req|res|next|val" }]
   }
 }
