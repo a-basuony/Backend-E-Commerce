@@ -7,12 +7,22 @@ const {
   deleteCategory,
 } = require("../controllers/category.controller");
 
-const router = express.Router();
+const {
+  getCategoryValidations,
+} = require("../utils/validators/categoryValidators");
 
-router.get("/", getCategories);
-router.get("/:id", getCategory);
-router.post("/", createCategory);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+const router = express.Router();
+router.route("/").get(getCategories).post(createCategory);
+// router.get("/", getCategories);
+// router.post("/", createCategory);
+
+router
+  .route("/:id")
+  .get(getCategoryValidations, getCategory)
+  .put(updateCategory)
+  .delete(deleteCategory);
+// router.get("/:id", getCategory);
+// router.put("/:id", updateCategory);
+// router.delete("/:id", deleteCategory);
 
 module.exports = router;
