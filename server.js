@@ -23,7 +23,7 @@ if (NODE_ENV === "development") {
 
 // Routes
 app.use("/api/v1/category", categoryRouter);
-app.use("/api/v1/category/subcategory", subcategoryRouter);
+app.use("/api/v1/subcategory", subcategoryRouter);
 
 // Not Found middleware
 app.use(notFound);
