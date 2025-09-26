@@ -8,6 +8,14 @@ exports.getCategoryValidators = [
 
 exports.updateCategoryValidators = [
   check("id").isMongoId().withMessage("Invalid category id format"),
+  check("name")
+    .notEmpty()
+    .withMessage("Category name is required")
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage("Category name must be at least 3 characters long")
+    .isLength({ max: 30 })
+    .withMessage("Category name must be less than 50 characters long"),
   validatorMiddleware,
 ];
 
