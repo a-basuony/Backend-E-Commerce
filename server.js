@@ -5,6 +5,8 @@ const morgan = require("morgan");
 const connectDB = require("./config/db");
 const categoryRouter = require("./routes/category.route");
 const subcategoryRouter = require("./routes/subcategory.route");
+const brandsRouter = require("./routes/brands.route");
+
 const ApiError = require("./utils/apiError");
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
 
@@ -24,6 +26,7 @@ if (NODE_ENV === "development") {
 // Routes
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/subcategories", subcategoryRouter);
+app.use("/api/v1/brands", brandsRouter);
 
 // Not Found middleware
 app.use(notFound);
