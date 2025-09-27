@@ -11,7 +11,13 @@ exports.getSubCategories = asyncHandler(async (req, res, next) => {
   const page = +req.query.page || 1;
   const limit = +req.query.limit || 10;
 
-  const subCategories = await SubCategory.find()
+  let filter = {};
+  if (req.params.categoryId) {
+    filter = { category: req.params.categoryId };
+  }
+
+  const subCategories = await SubCategory.find(filter)
+    .populate({ path: "category", select: "name -_id" })
     .skip((page - 1) * limit)
     .limit(limit)
     .sort({ createdAt: -1 });
@@ -25,6 +31,8 @@ exports.getSubCategories = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     message: "success",
+    result: subCategories.length,
+    page: page,
     data: subCategories,
     pagination: { total, page, limit, totalPages },
   });

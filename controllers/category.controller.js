@@ -24,6 +24,7 @@ exports.getCategories = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     message: "success",
+    count: categories.length,
     data: categories,
     pagination: { total, page, limit, totalPages },
   });
