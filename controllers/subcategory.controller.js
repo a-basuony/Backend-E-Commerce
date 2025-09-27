@@ -4,6 +4,15 @@ const slugify = require("slugify");
 const SubCategory = require("../models/subcategory.model");
 const ApiError = require("../utils/apiError");
 
+exports.setFilterObject = (req, res, next) => {
+  let filter = {};
+  if (req.params.categoryId) {
+    filter = { category: req.params.categoryId };
+  }
+  req.filterObject = filter;
+  next();
+};
+
 // @desc    Get all subCategories
 // @route   GET /api/v1/subcategory
 // @access  Public
@@ -11,10 +20,7 @@ exports.getSubCategories = asyncHandler(async (req, res, next) => {
   const page = +req.query.page || 1;
   const limit = +req.query.limit || 10;
 
-  let filter = {};
-  if (req.params.categoryId) {
-    filter = { category: req.params.categoryId };
-  }
+  const filter = req.filterObject;
 
   const subCategories = await SubCategory.find(filter)
     .populate({ path: "category", select: "name -_id" })
@@ -38,12 +44,16 @@ exports.getSubCategories = asyncHandler(async (req, res, next) => {
   });
 });
 
+exports.setCategoryIdToBody = (req, res, next) => {
+  req.body.category = req.params.categoryId;
+  next();
+};
+
 // @desc    Get subCategory by ID
 // @route   GET /api/v1/subcategory/:id
 // @access  Public
 exports.createSubCategory = asyncHandler(async (req, res, next) => {
   const { name, category } = req.body;
-
   const subCategory = await SubCategory.create({
     name,
     slug: slugify(name),
