@@ -8,18 +8,20 @@ const ApiError = require("../utils/apiError");
 // @access     Public
 
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  const page = +req.query.query || 1;
+  const page = +req.query.page || 1;
   const limit = +req.query.limit || 10;
 
   const products = await Product.find({})
     .skip((page - 1) * limit)
     .limit(limit);
 
-  if (!products) {
+  if (products.length === 0) {
+    //we can't use `!products` here because ❌ Product.find({}) return an empty array if no products is found, not null.
+
     return next(new ApiError("Products not found", 404));
   }
   const total = await Product.countDocuments();
-  const totalPages = total / limit;
+  const totalPages = Math.ceil(total / limit);
 
   res.status(200).json({
     message: "success",
@@ -57,6 +59,45 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 
   res.status(201).json({
     message: "Product created",
+    data: product,
+  });
+});
+
+// @desc        Update Product by ID
+// @route       PUT /api/v1/products/:id
+// @access      Private
+exports.updateProduct = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const product = await Product.findByIdAndUpdate(id, req.body, { new: true });
+
+  if (!product) {
+    return next(
+      new ApiError(`Update failed : Product not found for id: ${id}`, 404)
+    );
+  }
+
+  res.status(200).json({
+    message: "Product updated",
+    data: product,
+  });
+});
+
+// @desc        Delete Product by ID
+// @route       DELETE /api/v1/products/:id
+// @access      Private
+exports.deleteProduct = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const product = await Product.findByIdAndDelete(id);
+  if (!product) {
+    return next(
+      new ApiError(`Delete failed : Product not found for id: ${id}`, 404)
+    );
+  }
+
+  res.status(200).json({
+    message: "Product deleted",
     data: product,
   });
 });
