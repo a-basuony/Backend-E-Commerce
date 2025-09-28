@@ -47,7 +47,7 @@ exports.getCategory = asyncHandler(async (req, res, next) => {
 
 // @desc    Create new category
 // @route   POST /api/categories
-// @access  Public
+// @access  Private
 exports.createCategory = asyncHandler(async (req, res, next) => {
   const { name, image } = req.body;
   const slug = slugify(name, { lower: true });
@@ -63,7 +63,7 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 
 // @desc    Update category by ID
 // @route   PUT /api/categories/:id
-// @access  Public
+// @access  Private
 exports.updateCategory = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
 
@@ -85,7 +85,7 @@ exports.updateCategory = asyncHandler(async (req, res, next) => {
 
 // @desc    Delete category by ID
 // @route   DELETE /api/categories/:id
-// @access  Public
+// @access  Private
 exports.deleteCategory = asyncHandler(async (req, res, next) => {
   const category = await Category.findByIdAndDelete(req.params.id);
 

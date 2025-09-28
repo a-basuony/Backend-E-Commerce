@@ -45,3 +45,7 @@ module.exports = mongoose.model("Category", categorySchema);
 //@desc Get all categories
 //@route GET /api/categories
 // @access Public
+// ---------------------
+
+// minlength & maxlength for string
+// min & max for number
