@@ -12,6 +12,7 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
   const limit = +req.query.limit || 10;
 
   const products = await Product.find({})
+    .populate({ path: "category", select: "name -_id" })
     .skip((page - 1) * limit)
     .limit(limit);
 
@@ -37,7 +38,10 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
 exports.getProduct = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  const product = await Product.findById(id);
+  const product = await Product.findById(id).populate({
+    path: "category",
+    select: "name -_id",
+  });
   if (!product) {
     return next(new ApiError(`Product not found for id: ${id}`, 404));
   }
