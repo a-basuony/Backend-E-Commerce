@@ -6,8 +6,8 @@ const connectDB = require("./config/db");
 const categoryRouter = require("./routes/category.route");
 const subcategoryRouter = require("./routes/subcategory.route");
 const brandsRouter = require("./routes/brands.route");
+const productRouter = require("./routes/product.route");
 
-const ApiError = require("./utils/apiError");
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
 
 dotenv.config(); // Load env vars first ✅
@@ -27,6 +27,7 @@ if (NODE_ENV === "development") {
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/subcategories", subcategoryRouter);
 app.use("/api/v1/brands", brandsRouter);
+app.use("/api/v1/products", productRouter);
 
 // Not Found middleware
 app.use(notFound);
