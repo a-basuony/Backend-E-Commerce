@@ -4,6 +4,7 @@ const slugify = require("slugify");
 const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 const Category = require("../../models/category.model");
 const SubCategory = require("../../models/subcategory.model");
+const Brand = require("../../models/brand.model");
 
 exports.getProductValidators = [
   check("id").isMongoId().withMessage("Invalid product id format"),
@@ -124,7 +125,17 @@ exports.createProductValidators = [
 
       return true;
     }),
-  check("brand").optional().isMongoId().withMessage("Invalid brand id format"),
+  check("brand")
+    .optional()
+    .isMongoId()
+    .withMessage("Invalid brand id format")
+    .custom(async (brandId) => {
+      const brand = await Brand.findById(brandId);
+      if (!brand) {
+        throw new Error(`Invalid brand id format ${brandId}`);
+      }
+      return true;
+    }),
   check("ratingsAverage")
     .optional()
     .isFloat({ min: 1, max: 5 })
