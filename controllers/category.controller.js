@@ -3,30 +3,31 @@ const slugify = require("slugify");
 
 const Category = require("../models/category.model");
 const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
 
 // @desc    Get all categories with pagination
 // @route   GET /api/categories
 // @access  Public
 exports.getCategories = asyncHandler(async (req, res, next) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 10;
+  const documentsCounts = await Category.countDocuments();
 
-  const categories = await Category.find()
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({ createdAt: -1 });
+  const features = new ApiFeatures(Category.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate(documentsCounts); // pass total documents if you want
+
+  const categories = await features.mongooseQuery; // keep your property name
 
   if (!categories) {
     return next(new ApiError("Categories not found", 404));
   }
-  const total = await Category.countDocuments();
-  const totalPages = Math.ceil(total / limit);
 
   res.status(200).json({
     message: "success",
     count: categories.length,
+    pagination: features.paginationResult,
     data: categories,
-    pagination: { total, page, limit, totalPages },
   });
 });
 
