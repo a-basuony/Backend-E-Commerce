@@ -1,20 +1,20 @@
 class ApiFeatures {
   constructor(mongooseQuery, queryStr) {
-    this.mongooseQuery = mongooseQuery;
-    this.queryStr = queryStr;
+    this.mongooseQuery = mongooseQuery; // Mongoose query object
+    this.queryStr = queryStr; // Express req.query object
   }
 
+  // 1) Filter by fields and advanced queries
   filter() {
     const queryObj = { ...this.queryStr };
-    console.log(this.queryStr);
     const excludedFields = ["page", "sort", "limit", "fields", "keyword"];
     excludedFields.forEach((el) => delete queryObj[el]);
 
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    const filter = JSON.parse(queryStr);
 
-    let filter = JSON.parse(queryStr);
-
+    // Add keyword search if present
     if (this.queryStr.keyword) {
       filter.$or = [
         { title: { $regex: this.queryStr.keyword, $options: "i" } },
@@ -22,10 +22,15 @@ class ApiFeatures {
       ];
     }
 
-    this.mongooseQuery = this.mongooseQuery.find(filter);
-    return this;
+    // Only apply filter if it has keys
+    if (Object.keys(filter).length > 0) {
+      this.mongooseQuery = this.mongooseQuery.find(filter);
+    }
+
+    return this; // allow chaining
   }
 
+  // 2) Sorting
   sort() {
     if (this.queryStr.sort) {
       const sortBy = this.queryStr.sort.split(",").join(" ");
@@ -36,6 +41,7 @@ class ApiFeatures {
     return this;
   }
 
+  // 3) Field limiting (projection)
   limitFields() {
     if (this.queryStr.fields) {
       const fields = this.queryStr.fields.split(",").join(" ");
@@ -46,12 +52,32 @@ class ApiFeatures {
     return this;
   }
 
-  paginate() {
-    const page = Math.max(+this.queryStr.page || 1, 1);
-    const limit = Math.max(+this.queryStr.limit || 10, 1);
+  // 4) Pagination
+  paginate(countDocuments) {
+    const page = +this.queryStr.page || 1; // Default page 1
+    const limit = +this.queryStr.limit || 10; // Default 10 items per page
     const skip = (page - 1) * limit;
+    const endIndex = page * limit;
 
+    const total = countDocuments;
+    // Build pagination result
+    const pagination = {
+      total,
+      numberOfPages: Math.ceil(total / limit),
+      currentPage: page,
+      limit,
+      hasNext: endIndex < total,
+      next: endIndex < total ? page + 1 : null,
+      hasPrev: skip > 0,
+      prev: skip > 0 ? page - 1 : null,
+    };
+
+    // Apply pagination to the query
     this.mongooseQuery = this.mongooseQuery.skip(skip).limit(limit);
+
+    // Store pagination info
+    this.paginationResult = pagination;
+
     return this;
   }
 }

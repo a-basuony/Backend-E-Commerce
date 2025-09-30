@@ -1,14 +1,14 @@
 const asyncHandler = require("express-async-handler");
-
 const Product = require("../models/product.model");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
 
-// @desc       Get all products
-// @route      GET /api/v1/products
-// @access     Public
+// @desc Get all products
+// @route GET /api/v1/products
+// @access Public
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  // 1) Build query using ApiFeatures
+  const documentsCounts = await Product.countDocuments();
+
   const features = new ApiFeatures(
     Product.find().populate({ path: "category", select: "name -_id" }),
     req.query
@@ -16,27 +16,15 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
     .filter()
     .sort()
     .limitFields()
-    .paginate();
-  // 2) Execute query
-  const products = await features.mongooseQuery;
+    .paginate(documentsCounts); // pass total documents if you want
 
-  // 3) Get total count (without pagination)
-  const total = await Product.countDocuments();
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 10;
-  const totalPages = Math.ceil(total / limit);
+  const products = await features.mongooseQuery; // keep your property name
 
-  // 4) Send response
   res.status(200).json({
     message: "success",
     count: products.length,
+    pagination: features.paginationResult,
     data: products,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages,
-    },
   });
 });
 
