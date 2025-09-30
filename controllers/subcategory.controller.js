@@ -80,41 +80,9 @@ exports.getSubCategory = asyncHandler(async (req, res, next) => {
 // @desc    Update subCategory by ID
 // @route   PUT /api/v1/subcategory/:id
 // @access  Public
-exports.updateSubCategory = asyncHandler(async (req, res, next) => {
-  const { name, category } = req.body;
-  const { id } = req.params;
-
-  const subCategory = await SubCategory.findById(id);
-
-  if (!subCategory) {
-    return next(
-      new ApiError(`Update failed : SubCategory not found for id: ${id}`, 404)
-    );
-  }
-
-  subCategory.name = name || subCategory.name;
-  subCategory.category = category || subCategory.category;
-
-  await subCategory.save();
-
-  res.status(200).json({ message: "SubCategory updated", data: subCategory });
-});
+exports.updateSubCategory = factory.updateOne(SubCategory);
 
 // @desc    Delete subCategory by ID
 // @route   DELETE /api/v1/subcategory/:id
 // @access  Public
-
 exports.deleteSubCategory = factory.deleteOne(SubCategory);
-
-// exports.deleteSubCategory = asyncHandler(async (req, res, next) => {
-//   const { id } = req.params;
-
-//   const subCategory = await SubCategory.findByIdAndDelete(id);
-//   if (!subCategory) {
-//     return next(
-//       new ApiError(`Delete failed : SubCategory not found for id: ${id}`, 404)
-//     );
-//   }
-
-//   res.status(200).json({ message: "SubCategory deleted", data: subCategory });
-// });

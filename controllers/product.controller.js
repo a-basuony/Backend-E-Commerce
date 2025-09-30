@@ -69,40 +69,9 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 // @desc        Update Product by ID
 // @route       PUT /api/v1/products/:id
 // @access      Private
-exports.updateProduct = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const product = await Product.findByIdAndUpdate(id, req.body, { new: true });
-
-  if (!product) {
-    return next(
-      new ApiError(`Update failed : Product not found for id: ${id}`, 404)
-    );
-  }
-
-  res.status(200).json({
-    message: "Product updated",
-    data: product,
-  });
-});
+exports.updateProduct = factory.updateOne(Product);
 
 // @desc        Delete Product by ID
 // @route       DELETE /api/v1/products/:id
 // @access      Private
 exports.deleteProduct = factory.deleteOne(Product);
-
-// exports.deleteProduct = asyncHandler(async (req, res, next) => {
-//   const { id } = req.params;
-
-//   const product = await Product.findByIdAndDelete(id);
-//   if (!product) {
-//     return next(
-//       new ApiError(`Delete failed : Product not found for id: ${id}`, 404)
-//     );
-//   }
-
-//   res.status(200).json({
-//     message: "Product deleted",
-//     data: product,
-//   });
-// });

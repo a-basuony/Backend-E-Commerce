@@ -67,37 +67,9 @@ exports.createBrand = asyncHandler(async (req, res, next) => {
 // @desc    Update brand by ID
 // @route   PUT /api/v1/brands/:id
 // @access  Public
-exports.updateBrand = asyncHandler(async (req, res, next) => {
-  const { name } = req.body;
-  const { id } = req.params;
-
-  const brand = await BrandModel.findById(id);
-  if (!brand) {
-    return next(
-      new ApiError(`Update failed : Brand not found for id: ${id}`, 404)
-    );
-  }
-
-  brand.name = name || brand.name;
-  brand.slug = slugify(brand.name);
-  const updatedBrand = await brand.save();
-  res.status(200).json({ message: "Brand updated", data: updatedBrand });
-});
+exports.updateBrand = factory.updateOne(BrandModel);
 
 // @desc    Delete brand by ID
 // @route   DELETE /api/v1/brands/:id
 // @access  Public
 exports.deleteBrand = factory.deleteOne(BrandModel);
-
-// exports.deleteBrand = asyncHandler(async (req, res, next) => {
-//   const { id } = req.params;
-
-//   const brand = await BrandModel.findByIdAndDelete(id);
-//   if (!brand) {
-//     return next(
-//       new ApiError(`Delete failed : Brand not found for id: ${id}`, 404)
-//     );
-//   }
-
-//   res.status(200).json({ message: "Brand deleted", data: brand });
-// });
