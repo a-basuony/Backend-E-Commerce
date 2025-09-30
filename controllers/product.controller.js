@@ -6,48 +6,67 @@ const ApiError = require("../utils/apiError");
 // @desc       Get all products
 // @route      GET /api/v1/products
 // @access     Public
-
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  // 1=> 1. filtering
+  // 1=> filtering
   const queryObj = { ...req.query };
-  console.log(queryObj);
-  // 2. Remove special fields (not used in filtering)
-  const excludedFields = ["page", "sort", "limit", "fields"];
+  const excludedFields = ["page", "sort", "limit", "fields", "keyword"];
   excludedFields.forEach((el) => delete queryObj[el]);
 
-  // 3. Advanced filtering (gte, lte, gt, lt)
+  // advanced filtering
   let queryStr = JSON.stringify(queryObj);
   queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
   const filters = JSON.parse(queryStr);
 
-  console.log("Filters:", queryStr);
+  // 5 => search
+  if (req.query.keyword) {
+    const keyword = req.query.keyword;
+    filters.$or = [
+      { title: { $regex: keyword, $options: "i" } },
+      { description: { $regex: keyword, $options: "i" } },
+    ];
+  }
 
   // 2=> pagination
   const page = +req.query.page || 1;
   const limit = +req.query.limit || 10;
   const skip = (page - 1) * limit;
 
-  //Build query
-  const mongooseQuery = Product.find(filters)
+  // Build query
+  let mongooseQuery = Product.find(filters)
     .populate({ path: "category", select: "name -_id" })
     .skip(skip)
     .limit(limit);
 
   // 3=> sorting
   if (req.query.sort) {
-    // sorting from smallest to biggest (ascending) ?sort=price
-    // sorting from biggest to smallest (descending) ?sort=-price
     const sortBy = req.query.sort.split(",").join(" ");
-    mongooseQuery.sort(sortBy);
+    mongooseQuery = mongooseQuery.sort(sortBy);
+  } else {
+    mongooseQuery = mongooseQuery.sort("-createdAt");
   }
+
+  // 4=> field limiting
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    mongooseQuery = mongooseQuery.select(fields);
+  } else {
+    mongooseQuery = mongooseQuery.select("-__v");
+  }
+
   // execute query
-  // to chain more of methods
   const products = await mongooseQuery;
 
-  if (products.length === 0) {
-    return next(new ApiError("Products not found", 404));
+  // ⚠️ الأفضل: رجع Array فاضية بدل Error
+  if (!products || products.length === 0) {
+    return res.status(200).json({
+      message: "success",
+      count: 0,
+      data: [],
+      pagination: { total: 0, page, limit, totalPages: 0 },
+    });
   }
-  const total = await Product.countDocuments();
+
+  const total = await Product.countDocuments(filters);
   const totalPages = Math.ceil(total / limit);
 
   res.status(200).json({
