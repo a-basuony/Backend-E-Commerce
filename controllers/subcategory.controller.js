@@ -57,15 +57,7 @@ exports.createSubCategory = factory.createOne(SubCategory);
 //@desc    Get subCategory by ID
 // @route   GET /api/v1/subcategory/:id
 // @access  Public
-exports.getSubCategory = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const subCategory = await SubCategory.findById(id);
-  if (!subCategory) {
-    return next(new ApiError(`SubCategory not found for id: ${id}`, 404));
-  }
-  res.status(200).json({ message: "success", data: subCategory });
-});
+exports.getSubCategory = factory.getOne(SubCategory);
 
 // @desc    Update subCategory by ID
 // @route   PUT /api/v1/subcategory/:id

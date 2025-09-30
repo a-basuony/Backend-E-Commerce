@@ -35,43 +35,19 @@ exports.getBrands = asyncHandler(async (req, res, next) => {
 // @desc    Get brand by ID
 // @route   GET /api/v1/brands/:id
 // @access  Public
-exports.getBrand = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const brand = await BrandModel.findById(id);
-  if (!brand) {
-    return next(new ApiError(`Brand not found for id: ${id}`, 404));
-  }
-
-  res.status(200).json({ message: "success", data: brand });
-});
+exports.getBrand = factory.getOne(BrandModel);
 
 // @desc    create brand
 // @route   POST /api/v1/brands
-// @access  Public
+// @access  Private
 exports.createBrand = factory.createOne(BrandModel);
-
-// exports.createBrand = asyncHandler(async (req, res, next) => {
-//   const { name } = req.body;
-
-//   const brand = await BrandModel.create({
-//     name,
-//     slug: slugify(name),
-//     image: "no-image.jpg",
-//   });
-//   if (!brand) {
-//     return next(new ApiError("Create failed : Brand not found", 404));
-//   }
-
-//   res.status(201).json({ message: "Brand created", data: brand });
-// });
 
 // @desc    Update brand by ID
 // @route   PUT /api/v1/brands/:id
-// @access  Public
+// @access  Private
 exports.updateBrand = factory.updateOne(BrandModel);
 
 // @desc    Delete brand by ID
 // @route   DELETE /api/v1/brands/:id
-// @access  Public
+// @access  Private
 exports.deleteBrand = factory.deleteOne(BrandModel);
