@@ -1,3 +1,4 @@
+const slugify = require("slugify");
 const { check } = require("express-validator");
 const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 
@@ -14,7 +15,15 @@ exports.updateSubCategoryValidators = [
     .isLength({ min: 2 })
     .withMessage("SubCategory name must be at least 2 characters long")
     .isLength({ max: 30 })
-    .withMessage("SubCategory name must be less than 30 characters long"),
+    .withMessage("SubCategory name must be less than 30 characters long").custom(
+      (value, {req})=>{
+        if(req.body.name){
+          req.body.slug = slugify(value);
+        }
+        return true
+      }
+    ),
+  
   check("category")
     .optional()
     .isMongoId()

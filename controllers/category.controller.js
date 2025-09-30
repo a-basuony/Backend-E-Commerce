@@ -67,42 +67,9 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
 // @desc    Update category by ID
 // @route   PUT /api/categories/:id
 // @access  Private
-exports.updateCategory = asyncHandler(async (req, res, next) => {
-  const { name } = req.body;
-
-  const category = await Category.findById(req.params.id);
-  if (!category) {
-    return next(
-      new ApiError(
-        `Update failed : Category not found for id: ${req.params.id}`,
-        404
-      )
-    );
-  }
-
-  category.name = name || category.name;
-  await category.save();
-
-  res.status(200).json({ message: "Category updated", data: category });
-});
+exports.updateCategory = factory.updateOne(Category);
 
 // @desc    Delete category by ID
 // @route   DELETE /api/categories/:id
 // @access  Private
-
 exports.deleteCategory = factory.deleteOne(Category);
-
-// exports.deleteCategory = asyncHandler(async (req, res, next) => {
-//   const category = await Category.findByIdAndDelete(req.params.id);
-
-//   if (!category) {
-//     return next(
-//       new ApiError(
-//         `Delete failed : Category not found for id: ${req.params.id}`,
-//         404
-//       )
-//     );
-//   }
-
-//   res.status(200).json({ message: "Category deleted", data: category });
-// });

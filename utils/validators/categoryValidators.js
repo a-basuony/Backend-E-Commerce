@@ -1,3 +1,4 @@
+const slugify = require("slugify");
 const { body, param, check, query } = require("express-validator");
 const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 
@@ -15,7 +16,11 @@ exports.updateCategoryValidators = [
     .isLength({ min: 3 })
     .withMessage("Category name must be at least 3 characters long")
     .isLength({ max: 30 })
-    .withMessage("Category name must be less than 50 characters long"),
+    .withMessage("Category name must be less than 50 characters long")
+    .custom((value, { req }) => {
+      req.body.slug = slugify(value);
+      return true;
+    }),
   validatorMiddleware,
 ];
 
