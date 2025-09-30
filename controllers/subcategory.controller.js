@@ -43,26 +43,16 @@ exports.getSubCategories = asyncHandler(async (req, res, next) => {
 });
 
 exports.setCategoryIdToBody = (req, res, next) => {
-  req.body.category = req.params.categoryId;
+  if (req.params.categoryId) {
+    req.body.category = req.params.categoryId;
+  }
   next();
 };
 
 // @desc    Get subCategory by ID
-// @route   GET /api/v1/subcategory/:id
-// @access  Public
-exports.createSubCategory = asyncHandler(async (req, res, next) => {
-  const { name, category } = req.body;
-  const subCategory = await SubCategory.create({
-    name,
-    slug: slugify(name),
-    category,
-  });
-  if (!subCategory) {
-    return next(new ApiError("Create failed : SubCategory not found", 404));
-  }
-
-  res.status(201).json({ message: "SubCategory created", data: subCategory });
-});
+// @route   POST /api/v1/subcategories/
+// @access  Private
+exports.createSubCategory = factory.createOne(SubCategory);
 
 //@desc    Get subCategory by ID
 // @route   GET /api/v1/subcategory/:id
