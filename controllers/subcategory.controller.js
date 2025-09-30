@@ -3,6 +3,7 @@ const slugify = require("slugify");
 
 const SubCategory = require("../models/subcategory.model");
 const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
 
 exports.setFilterObject = (req, res, next) => {
   let filter = {};
@@ -17,30 +18,26 @@ exports.setFilterObject = (req, res, next) => {
 // @route   GET /api/v1/subcategory
 // @access  Public
 exports.getSubCategories = asyncHandler(async (req, res, next) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 10;
+  const documentsCounts = await SubCategory.countDocuments();
 
-  const filter = req.filterObject;
+  const features = new ApiFeatures(SubCategory.find(), req.query)
+    .filter()
+    .sort()
+    .search("SubCategories")
+    .limitFields()
+    .paginate(documentsCounts); // pass total documents if you want
 
-  const subCategories = await SubCategory.find(filter)
-    .populate({ path: "category", select: "name -_id" })
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({ createdAt: -1 });
+  const subCategories = await features.mongooseQuery; // keep your property name
 
   if (!subCategories || subCategories.length === 0) {
     return next(new ApiError("SubCategories not found", 404));
   }
 
-  const total = await SubCategory.countDocuments();
-  const totalPages = Math.ceil(total / limit);
-
   res.status(200).json({
     message: "success",
     result: subCategories.length,
-    page: page,
     data: subCategories,
-    pagination: { total, page, limit, totalPages },
+    pagination: features.paginationResult,
   });
 });
 

@@ -30,6 +30,31 @@ class ApiFeatures {
     return this; // allow chaining
   }
 
+  search(modelName) {
+    if (this.queryStr.keyword) {
+      let query = {};
+      if (modelName === "Products") {
+        query = {
+          $or: [
+            { title: { $regex: this.queryStr.keyword, $options: "i" } },
+            { description: { $regex: this.queryStr.keyword, $options: "i" } },
+          ],
+        };
+      } else {
+        query = {
+          $or: [
+            { name: { $regex: this.queryStr.keyword, $options: "i" } },
+            { description: { $regex: this.queryStr.keyword, $options: "i" } },
+          ],
+        };
+      }
+
+      this.mongooseQuery = this.mongooseQuery.find(query);
+    }
+
+    return this;
+  }
+
   // 2) Sorting
   sort() {
     if (this.queryStr.sort) {
