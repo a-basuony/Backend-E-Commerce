@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -116,4 +117,59 @@ exports.getOne = (Model) =>
 //     return next(new ApiError(`SubCategory not found for id: ${id}`, 404));
 //   }
 //   res.status(200).json({ message: "success", data: subCategory });
+// });
+
+exports.getAll = (Model, modelName = "") =>
+  asyncHandler(async (req, res, next) => {
+    // for subcategories belongs to category
+    let filter = {};
+    if (req.filterObject) filter = req.filterObject;
+
+    const documentsCounts = await Model.countDocuments();
+
+    const features = new ApiFeatures(
+      Model.find(filter), // .populate({ path: "category", select: "name -_id" })
+      req.query
+    )
+      .filter()
+      .sort()
+      .search(modelName)
+      .limitFields()
+      .paginate(documentsCounts); // pass total documents if you want
+
+    const documents = await features.mongooseQuery; // keep your property name
+    if (!documents) {
+      return next(new ApiError("Categories not found", 404));
+    }
+
+    res.status(200).json({
+      message: "success",
+      count: documents.length,
+      pagination: features.paginationResult,
+      data: documents,
+    });
+  });
+
+// ================== example ==================
+// exports.getAllSubCategories = asyncHandler(async (req, res, next) => {
+// const documentsCounts = await Product.countDocuments();
+
+// const features = new ApiFeatures(
+//   Product.find().populate({ path: "category", select: "name -_id" }),
+//   req.query
+// )
+//   .filter()
+//   .sort()
+//   .search("Products")
+//   .limitFields()
+//   .paginate(documentsCounts); // pass total documents if you want
+
+// const products = await features.mongooseQuery; // keep your property name
+
+// res.status(200).json({
+//   message: "success",
+//   count: products.length,
+//   pagination: features.paginationResult,
+//   data: products,
+// });
 // });
