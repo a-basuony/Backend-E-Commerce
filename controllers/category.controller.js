@@ -14,6 +14,7 @@ exports.getCategories = asyncHandler(async (req, res, next) => {
   const features = new ApiFeatures(Category.find(), req.query)
     .filter()
     .sort()
+    .search("Categories")
     .limitFields()
     .paginate(documentsCounts); // pass total documents if you want
 

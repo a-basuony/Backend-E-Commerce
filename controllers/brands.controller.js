@@ -13,6 +13,7 @@ exports.getBrands = asyncHandler(async (req, res, next) => {
   const features = new ApiFeatures(BrandModel.find(), req.query)
     .filter()
     .sort()
+    .search("Brands")
     .limitFields()
     .paginate(documentsCounts); // pass total documents if you want
 

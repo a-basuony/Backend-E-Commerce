@@ -15,6 +15,7 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
   )
     .filter()
     .sort()
+    .search("Products")
     .limitFields()
     .paginate(documentsCounts); // pass total documents if you want
 
