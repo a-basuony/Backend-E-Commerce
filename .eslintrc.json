@@ -14,6 +14,7 @@
     "no-underscore-dangle": "off",
     "class-methods-use-this": "off",
     "no-unsupported-features/es-syntax.md": "off",
+    "no-unsupported-features/es-syntax": "off",
     "no-undef": "error",
     "prefer-destructuring": ["warn", { "object": true, "array": false }],
     "no-unused-vars": ["warn", { "argsIgnorePattern": "req|res|next|val" }]
