@@ -33,7 +33,7 @@ class ApiFeatures {
   search(modelName) {
     if (this.queryStr.keyword) {
       let query = {};
-      if (modelName === "Products") {
+      if (modelName === "Product") {
         query = {
           $or: [
             { title: { $regex: this.queryStr.keyword, $options: "i" } },
