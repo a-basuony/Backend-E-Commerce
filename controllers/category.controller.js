@@ -4,6 +4,7 @@ const slugify = require("slugify");
 const Category = require("../models/category.model");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
+const factory = require("./handlersFactory");
 
 // @desc    Get all categories with pagination
 // @route   GET /api/categories
@@ -88,17 +89,20 @@ exports.updateCategory = asyncHandler(async (req, res, next) => {
 // @desc    Delete category by ID
 // @route   DELETE /api/categories/:id
 // @access  Private
-exports.deleteCategory = asyncHandler(async (req, res, next) => {
-  const category = await Category.findByIdAndDelete(req.params.id);
 
-  if (!category) {
-    return next(
-      new ApiError(
-        `Delete failed : Category not found for id: ${req.params.id}`,
-        404
-      )
-    );
-  }
+exports.deleteCategory = factory.deleteOne(Category);
 
-  res.status(200).json({ message: "Category deleted", data: category });
-});
+// exports.deleteCategory = asyncHandler(async (req, res, next) => {
+//   const category = await Category.findByIdAndDelete(req.params.id);
+
+//   if (!category) {
+//     return next(
+//       new ApiError(
+//         `Delete failed : Category not found for id: ${req.params.id}`,
+//         404
+//       )
+//     );
+//   }
+
+//   res.status(200).json({ message: "Category deleted", data: category });
+// });
