@@ -64,3 +64,31 @@ exports.updateOne = (Model) =>
 //     data: product,
 //   });
 // });
+
+exports.createOne = (Model) =>
+  asyncHandler(async (req, res, next) => {
+    const document = await Model.create(req.body);
+    if (!document) {
+      return next(new ApiError("Create failed : Document not found", 404));
+    }
+
+    res.status(201).json({
+      message: "Document created",
+      data: document,
+    });
+  });
+
+// ================== example ==================
+// exports.createSubCategory = asyncHandler(async (req, res, next) => {
+//   const { name, category } = req.body;
+//   const subCategory = await SubCategory.create({
+//     name,
+//     slug: slugify(name),
+//     category,
+//   });
+//   if (!subCategory) {
+//     return next(new ApiError("Create failed : SubCategory not found", 404));
+//   }
+
+//   res.status(201).json({ message: "SubCategory created", data: subCategory });
+// });
