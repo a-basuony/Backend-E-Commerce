@@ -67,14 +67,14 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    const document = await Model.create(req.body);
-    if (!document) {
-      return next(new ApiError("Create failed : Document not found", 404));
+    const newDocument = await Model.create(req.body);
+    if (!newDocument) {
+      return next(new ApiError("Create failed : newDocument not found", 404));
     }
 
     res.status(201).json({
-      message: "Document created",
-      data: document,
+      message: "newDocument created",
+      data: newDocument,
     });
   });
 
@@ -91,4 +91,29 @@ exports.createOne = (Model) =>
 //   }
 
 //   res.status(201).json({ message: "SubCategory created", data: subCategory });
+// });
+
+exports.getOne = (Model) =>
+  asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const document = await Model.findById(id);
+    if (!document) {
+      return next(new ApiError(`Document not found for id: ${id}`, 404));
+    }
+
+    res.status(200).json({
+      message: "success",
+      data: document,
+    });
+  });
+// ================== example ==================
+// exports.getSubCategory = asyncHandler(async (req, res, next) => {
+//   const { id } = req.params;
+
+//   const subCategory = await SubCategory.findById(id);
+//   if (!subCategory) {
+//     return next(new ApiError(`SubCategory not found for id: ${id}`, 404));
+//   }
+//   res.status(200).json({ message: "success", data: subCategory });
 // });
