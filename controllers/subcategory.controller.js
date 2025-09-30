@@ -35,9 +35,9 @@ exports.getSubCategories = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     message: "success",
-    result: subCategories.length,
-    data: subCategories,
     pagination: features.paginationResult,
+    count: subCategories.length,
+    data: subCategories,
   });
 });
 
