@@ -1,3 +1,5 @@
+const path = require("path");
+
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
@@ -22,6 +24,9 @@ if (NODE_ENV === "development") {
   app.use(morgan("dev"));
   console.log(`mode: ${NODE_ENV}`);
 }
+
+// http://localhost:8000/uploads/categories/imageName.jpeg
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/v1/categories", categoryRouter);

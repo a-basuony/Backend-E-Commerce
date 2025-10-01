@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
@@ -33,9 +36,28 @@ exports.deleteOne = (Model) =>
 //   });
 // });
 
-exports.updateOne = (Model) =>
+exports.updateOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
+
+    const oldDocument = await Model.findById(id);
+    if (!oldDocument) {
+      return next(
+        new ApiError(`Update failed : Document not found for id: ${id}`, 404)
+      );
+    }
+
+    if (req.body.image && oldDocument.image) {
+      const folder = options.imageFolder || ""; // folder name (e.g., "categories", "products", "brands".)
+      const oldImagePath = path.join(
+        __dirname,
+        `../uploads/${folder}/${oldDocument.image}`
+      ); // old image path
+      fs.unlink(oldImagePath, (err) => {
+        if (err) console.log("⚠️ Failed to delete old image:", err.message);
+      });
+    }
+
     const document = await Model.findByIdAndUpdate(id, req.body, { new: true });
     if (!document) {
       return next(

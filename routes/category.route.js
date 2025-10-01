@@ -37,7 +37,12 @@ router
 router
   .route("/:id")
   .get(getCategoryValidators, getCategory)
-  .put(updateCategoryValidators, updateCategory)
+  .put(
+    uploadCategoryImage,
+    resizeCategoryImage,
+    updateCategoryValidators,
+    updateCategory
+  )
   .delete(deleteCategoryValidators, deleteCategory);
 
 // router.get("/:id", getCategory);
