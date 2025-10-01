@@ -17,7 +17,7 @@ const categorySchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      default: "no-image.jpg",
+      // required: [true, "Please add a category image"],
     },
   },
   { timestamps: true } // createdAt and updatedAt

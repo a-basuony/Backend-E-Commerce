@@ -68,6 +68,7 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
+    const image = req.file;
     const newDocument = await Model.create(req.body);
     if (!newDocument) {
       return next(new ApiError("Create failed : newDocument not found", 404));
