@@ -6,6 +6,7 @@ const {
   getCategory,
   deleteCategory,
   uploadCategoryImage,
+  resizeCategoryImage,
 } = require("../controllers/category.controller");
 
 const {
@@ -24,7 +25,12 @@ router.use("/:categoryId/subcategories", subCategoryRouter);
 router
   .route("/")
   .get(getCategories)
-  .post(uploadCategoryImage, createCategoryValidators, createCategory);
+  .post(
+    uploadCategoryImage,
+    resizeCategoryImage,
+    createCategoryValidators,
+    createCategory
+  );
 // router.get("/", getCategories);
 // router.post("/", createCategory);
 
