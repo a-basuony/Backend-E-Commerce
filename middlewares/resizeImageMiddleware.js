@@ -21,6 +21,8 @@ module.exports.resizeImage = (folderName, prefix = "image") =>
       .jpeg({ quality: 90 })
       .toFile(`uploads/${folderName}/${filename}`);
 
+    // if you want to save the url of image
+    // req.body.image = req.hostname+filename;
     req.body.image = filename;
     next();
   });
