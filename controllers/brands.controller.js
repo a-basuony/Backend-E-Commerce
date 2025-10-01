@@ -23,7 +23,9 @@ exports.createBrand = factory.createOne(BrandModel);
 // @desc    Update brand by ID
 // @route   PUT /api/v1/brands/:id
 // @access  Private
-exports.updateBrand = factory.updateOne(BrandModel);
+exports.updateBrand = factory.updateOne(BrandModel, {
+  imageFolder: "brands",
+});
 
 // @desc    Delete brand by ID
 // @route   DELETE /api/v1/brands/:id
