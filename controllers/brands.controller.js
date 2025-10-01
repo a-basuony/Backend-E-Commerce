@@ -1,9 +1,10 @@
-const asyncHandler = require("express-async-handler");
+const { resizeImage } = require("../middlewares/resizeImageMiddleware");
+const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const BrandModel = require("../models/brand.model");
-const ApiError = require("../utils/apiError");
-const ApiFeatures = require("../utils/apiFeatures");
 const factory = require("./handlersFactory");
 
+exports.uploadBrandImage = uploadSingleImage("image");
+exports.resizeBrandImage = resizeImage("brands", "brand");
 // @desc    Get all brands
 // @route   GET /api/v1/brands
 // @access  Public
