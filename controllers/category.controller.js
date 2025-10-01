@@ -1,26 +1,11 @@
-const asyncHandler = require("express-async-handler");
-const sharp = require("sharp");
-const { v4: uuid } = require("uuid");
-
 const Category = require("../models/category.model");
 const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
+const { resizeImage } = require("../middlewares/resizeImageMiddleware");
 
 exports.uploadCategoryImage = uploadSingleImage("image");
 
-exports.resizeCategoryImage = asyncHandler(async (req, res, next) => {
-  const filename = `category-${uuid()}-${Date.now()}.jpeg`;
-
-  await sharp(req.file.buffer)
-    .resize(500, 500)
-    .toFormat("jpeg")
-    .jpeg({ quality: 90 })
-    .toFile(`uploads/categories/${filename}`); // save image to uploads/categoriesfilename`);
-
-  req.body.image = filename;
-  next();
-});
-
+exports.resizeCategoryImage = resizeImage("categories", "category");
 // @desc    Get all categories with pagination
 // @route   GET /api/categories
 // @access  Public
