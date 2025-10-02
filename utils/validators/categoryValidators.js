@@ -10,6 +10,7 @@ exports.getCategoryValidators = [
 exports.updateCategoryValidators = [
   check("id").isMongoId().withMessage("Invalid category id format"),
   check("name")
+    .optional()
     .notEmpty()
     .withMessage("Category name is required")
     .trim()

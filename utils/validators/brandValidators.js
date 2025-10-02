@@ -9,6 +9,7 @@ exports.getBrandValidators = [
 
 exports.createBrandValidators = [
   check("name")
+    .optional()
     .notEmpty()
     .withMessage("Brand name is required")
     .trim()
