@@ -47,7 +47,7 @@ exports.updateOne = (Model, options = {}) =>
       );
     }
 
-    if (req.body.image && oldDocument.image) {
+    if (req.file && oldDocument.image) {
       const folder = options.imageFolder || ""; // folder name (e.g., "categories", "products", "brands".)
       const oldImagePath = path.join(
         __dirname,

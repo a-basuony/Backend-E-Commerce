@@ -29,4 +29,18 @@ brandSchema.pre("save", function (next) {
   next();
 });
 
+const setImageURL = (doc) => {
+  if (doc.image) {
+    doc.image = `${process.env.BASE_URL}/uploads/brands/${doc.image}`;
+  }
+};
+
+// run on find, findOne, findOneAndUpdate, findOneAndDelete
+brandSchema.post("init", (document) => {
+  setImageURL(document);
+});
+// run on save or create a document which is creating a new document
+brandSchema.post("save", (document) => {
+  setImageURL(document);
+});
 module.exports = mongoose.model("Brand", brandSchema);

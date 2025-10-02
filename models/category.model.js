@@ -30,9 +30,19 @@ categorySchema.pre("save", function (next) {
   next();
 });
 
-categorySchema.post("init", (document) => {
-  if (document.image) {
-    document.image = `${process.env.BASE_URL}/categories/${document.image}`;
+const setImageURL = (doc) => {
+  if (doc.image) {
+    doc.image = `${process.env.BASE_URL}/uploads/categories/${doc.image}`;
   }
+};
+
+// run on find, findOne, findOneAndUpdate, findOneAndDelete
+categorySchema.post("init", (document) => {
+  setImageURL(document);
 });
+// run on save or create a document which is creating a new document
+categorySchema.post("save", (document) => {
+  setImageURL(document);
+});
+
 module.exports = mongoose.model("Category", categorySchema);
