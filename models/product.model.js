@@ -87,6 +87,13 @@ productSchema.pre("save", function (next) {
   next();
 });
 
+productSchema.pre("save", function (next) {
+  if (this.title) {
+    this.slug = slugify(this.title, { lower: true });
+  }
+  next();
+});
+
 productSchema.pre(/^find/, function (next) {
   this.populate({
     path: "category",

@@ -30,22 +30,9 @@ categorySchema.pre("save", function (next) {
   next();
 });
 
+categorySchema.post("init", (document) => {
+  if (document.image) {
+    document.image = `${process.env.BASE_URL}/categories/${document.image}`;
+  }
+});
 module.exports = mongoose.model("Category", categorySchema);
-
-// use asyncHandler to avoid try/catch block
-// ------------------
-// details of validations , roles  => get from system analysis document from your company
-///------------------
-// 1. .then() and .catch()
-// 2. async/await
-// 3. try/catch
-// 4. asyncHandler(async (req, res) => {}) package ==> express error handler {error from express}
-// 5. try/catch + asyncHandler(async (req, res) => {})
-//---------------
-//@desc Get all categories
-//@route GET /api/categories
-// @access Public
-// ---------------------
-
-// minlength & maxlength for string
-// min & max for number
