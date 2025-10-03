@@ -1,4 +1,3 @@
-const multer = require("multer");
 const sharp = require("sharp");
 const { v4: uuid } = require("uuid");
 const path = require("path");
@@ -7,22 +6,27 @@ const asyncHandler = require("express-async-handler");
 const Product = require("../models/product.model");
 
 const factory = require("./handlersFactory");
-const ApiError = require("../utils/apiError");
+const { uploadMixImages } = require("../middlewares/uploadImageMiddleware");
 
-const multerStorage = multer.memoryStorage();
+// const multerStorage = multer.memoryStorage();
 
-const multerFilter = (req, file, cb) => {
-  console.log(req.body);
-  if (file.mimetype.startsWith("image")) {
-    cb(null, true);
-  } else {
-    cb(new ApiError("Not an image! Please upload only images", 400), false);
-  }
-};
+// const multerFilter = (req, file, cb) => {
+//   console.log(req.body);
+//   if (file.mimetype.startsWith("image")) {
+//     cb(null, true);
+//   } else {
+//     cb(new ApiError("Not an image! Please upload only images", 400), false);
+//   }
+// };
 
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+// const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
 
-exports.uploadProductImage = upload.fields([
+// exports.uploadProductImage = upload.fields([
+//   { name: "imageCover", maxCount: 1 },
+//   { name: "images", maxCount: 5 },
+// ]);
+
+exports.uploadProductImage = uploadMixImages([
   { name: "imageCover", maxCount: 1 },
   { name: "images", maxCount: 5 },
 ]);
