@@ -5,6 +5,7 @@ const factory = require("./handlersFactory");
 
 exports.uploadBrandImage = uploadSingleImage("image");
 exports.resizeBrandImage = resizeImage("brands", "brand");
+
 // @desc    Get all brands
 // @route   GET /api/v1/brands
 // @access  Public
