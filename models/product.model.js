@@ -95,6 +95,11 @@ productSchema.pre(/^find/, function (next) {
   next();
 });
 
+productSchema.post("save", async function (doc, next) {
+  await doc.populate({ path: "category", select: "name _id" });
+  next();
+});
+
 const setImageURL = (document) => {
   if (document.imageCover) {
     document.imageCover = `${process.env.BASE_URL}/uploads/products/${document.imageCover}`;
