@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
@@ -49,6 +50,12 @@ userSchema.post("init", (document) => {
 });
 userSchema.post("save", (document) => {
   setImageURL(document);
+});
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
 module.exports = mongoose.model("User", userSchema);
