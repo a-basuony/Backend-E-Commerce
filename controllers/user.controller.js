@@ -27,15 +27,13 @@ exports.changePassword = asyncHandler(async (req, res, next) => {
       new ApiError(`Update failed : Document not found for id: ${id}`, 404)
     );
   }
-  console.log(req.body.password);
   const document = await User.findByIdAndUpdate(
     id,
     {
-      password: await bcrypt.hash(req.body.password, 12),
+      password: await bcrypt.hash(req.body.newPassword, 12),
     },
     { new: true }
   );
-  console.log(document);
   if (!document) {
     return next(
       new ApiError(`Update failed : password not found for id: ${id}`, 404)
