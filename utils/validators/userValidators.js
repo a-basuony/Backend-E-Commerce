@@ -86,12 +86,23 @@ exports.createUserValidators = [
     .isLength({ min: 6 })
     .withMessage("User password must be at least 6 characters long")
     .isLength({ max: 30 })
-    .withMessage("User password must be less than 30 characters long"),
-
+    .withMessage("User password must be less than 30 characters long")
+    .custom((value, { req }) => {
+      if (value !== req.body.confirmPassword) {
+        throw new Error("Password and confirm password do not match");
+      }
+      return true;
+    }),
+  check("confirmPassword")
+    .notEmpty()
+    .withMessage("Confirm password is required"),
+  check("profileImage").optional(),
   check("phone")
     .optional()
-    .isMobilePhone("any")
-    .withMessage("User phone is invalid"),
+    .isMobilePhone(["ar-EG", "ar-SA"])
+    .withMessage(
+      "User phone is invalid only accepted Egy and SA phone numbers"
+    ),
   check("role")
     .optional()
     .isIn(["user", "admin"])
