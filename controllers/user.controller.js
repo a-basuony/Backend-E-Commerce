@@ -6,7 +6,6 @@ const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const { resizeImage } = require("../middlewares/resizeImageMiddleware");
 
 exports.uploadUserImage = uploadSingleImage("profileImage");
-
 exports.resizeUserImage = resizeImage("users", "user");
 // @desc    Get all Users with pagination
 // @route   GET /api/users
