@@ -23,6 +23,10 @@ module.exports.resizeImage = (folderName, prefix = "image") =>
 
     // if you want to save the url of image
     // req.body.image = req.hostname+filename;
-    req.body.image = filename;
+    if (folderName === "users") {
+      req.body.profileImage = filename;
+    } else {
+      req.body.image = filename;
+    }
     next();
   });

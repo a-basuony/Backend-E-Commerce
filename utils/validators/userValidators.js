@@ -1,8 +1,8 @@
-const { check } = require(" express-validator");
 const slugify = require("slugify");
+const { check } = require("express-validator");
 
-const validatorMiddleware = require("../middlewares/validatorMiddleware");
-const User = require("../models/user.model");
+const validatorMiddleware = require("../../middlewares/validatorMiddleware");
+const User = require("../../models/user.model");
 
 exports.getUserValidators = [
   check("id").isMongoId().withMessage("Invalid user id format"),

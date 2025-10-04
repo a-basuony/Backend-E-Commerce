@@ -38,4 +38,17 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 ); // we can add favorites
 
+const setImageURL = (document) => {
+  if (document.profileImage) {
+    document.profileImage = `${process.env.BASE_URL}/uploads/users/${document.profileImage}`;
+  }
+};
+
+userSchema.post("init", (document) => {
+  setImageURL(document);
+});
+userSchema.post("save", (document) => {
+  setImageURL(document);
+});
+
 module.exports = mongoose.model("User", userSchema);
