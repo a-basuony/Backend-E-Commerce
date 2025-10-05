@@ -38,12 +38,19 @@ router
   .route("/:id")
   .get(getCategoryValidators, getCategory)
   .put(
+    protect, // check token
+    allowTo("admin", "manager"), // check role
     uploadCategoryImage,
     resizeCategoryImage,
     updateCategoryValidators,
     updateCategory
   )
-  .delete(deleteCategoryValidators, deleteCategory);
+  .delete(
+    protect, // check token
+    allowTo("admin"), // check role
+    deleteCategoryValidators,
+    deleteCategory
+  );
 
 // router.get("/:id", getCategory);
 // router.put("/:id", updateCategory);
