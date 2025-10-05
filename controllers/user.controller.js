@@ -31,6 +31,8 @@ exports.changePassword = asyncHandler(async (req, res, next) => {
     id,
     {
       password: await bcrypt.hash(req.body.newPassword, 12),
+      passwordChangedAt: Date.now(), //إحنا عايزين نمنع أي مستخدم يدخل بحساب قديم لو كان غيّر الباسورد بعد إصدار التوكن.
+      // لو وقت تغيير الباسورد أكبر من وقت إنشاء التوكن
     },
     { new: true }
   );
