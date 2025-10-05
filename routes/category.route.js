@@ -16,23 +16,21 @@ const {
   createCategoryValidators,
 } = require("../utils/validators/categoryValidators");
 const subCategoryRouter = require("./subcategory.route");
-const { protect } = require("../controllers/auth.controller");
+const { protect, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
 // api/v1/categories/:categoryId/subcategories
 router.use("/:categoryId/subcategories", subCategoryRouter);
 
-router
-  .route("/")
-  .get(getCategories)
-  .post(
-    protect,
-    uploadCategoryImage,
-    resizeCategoryImage,
-    createCategoryValidators,
-    createCategory
-  );
+router.route("/").get(getCategories).post(
+  protect, // check token
+  allowTo("admin", "manager"), // check role
+  uploadCategoryImage,
+  resizeCategoryImage,
+  createCategoryValidators,
+  createCategory
+);
 // router.get("/", getCategories);
 // router.post("/", createCategory);
 

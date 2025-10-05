@@ -23,6 +23,7 @@ const globalError = (err, req, res, next) => {
 
   if (env === "development") {
     console.error("🔥 Error:", err);
+
     res.status(err.statusCode).json({
       status: err.status,
       error: err,
