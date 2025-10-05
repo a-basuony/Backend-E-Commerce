@@ -57,10 +57,8 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 exports.protect = asyncHandler(async (req, res, next) => {
-  // 1. check if token exist, if it does not exist, return error, if it does exist get token from header to get user id
-
+  // 1. Check if token exists in the header and extract it
   let token;
-  console.log(req.headers.authorization);
 
   if (
     req.headers.authorization &&
@@ -76,17 +74,39 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
 
   // 2. verify token
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  // there is 2 type of errors here 1. invalid token 2. token has been expired
-  //   console.log(decoded); // decoded is an object that contains user id and expiration date
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    // Any JWT error will be handled globally in globalError middleware
+    return next(err);
+  }
 
   // 3. check if user still exists
   const currentUser = await User.findById(decoded.id);
 
-  // 4. check if user changed password after token was issued
   if (!currentUser) {
     return next(
       new ApiError("The user belonging to this token does no longer exist", 401)
     );
   }
+
+  // 4. Check if user changed password after token was issued
+  // (optional but strongly recommended)
+  if (currentUser.passwordChangedAt) {
+    const passwordChangedTimestamp = parseInt(
+      currentUser.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    if (passwordChangedTimestamp > decoded.iat) {
+      return next(
+        new ApiError("User recently changed password. Please login again.", 401)
+      );
+    }
+  }
+
+  // 5. Grant access
+  req.user = currentUser;
+  next();
 });
