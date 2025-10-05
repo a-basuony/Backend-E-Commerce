@@ -55,3 +55,38 @@ exports.login = asyncHandler(async (req, res, next) => {
     token,
   });
 });
+
+exports.protect = asyncHandler(async (req, res, next) => {
+  // 1. check if token exist, if it does not exist, return error, if it does exist get token from header to get user id
+
+  let token;
+  console.log(req.headers.authorization);
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
+    return next(
+      new ApiError("You are not logged in to access this route", 401)
+    );
+  }
+
+  // 2. verify token
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  // there is 2 type of errors here 1. invalid token 2. token has been expired
+  //   console.log(decoded); // decoded is an object that contains user id and expiration date
+
+  // 3. check if user still exists
+  const currentUser = await User.findById(decoded.id);
+
+  // 4. check if user changed password after token was issued
+  if (!currentUser) {
+    return next(
+      new ApiError("The user belonging to this token does no longer exist", 401)
+    );
+  }
+});
