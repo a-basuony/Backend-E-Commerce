@@ -54,17 +54,17 @@ exports.getUser = factory.getOne(User);
 
 // @desc    Create new User
 // @route   POST /api/users
-// // @access  Private
+// // @access  Private/ admin
 exports.createUser = factory.createOne(User);
 
 // @desc    Update User by ID
 // @route   PUT /api/users/:id
-// @access  Private
+// @access  Private/admin
 exports.updateUser = factory.updateOne(User, {
   imageFolder: "users",
 });
 
 // @desc    Delete User by ID
 // @route   DELETE /api/users/:id
-// @access  Private
+// @access  Private/admin
 exports.deleteUser = factory.deleteOne(User);
