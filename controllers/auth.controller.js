@@ -6,11 +6,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const ApiError = require("../utils/apiError");
 const sendEmail = require("../utils/sendEmail");
-
-const createToken = (id) =>
-  jwt.sign({ id: id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+const createToken = require("../utils/createToken");
 
 // @desc    Signup user
 // @route   POST /api/v1/auth/signup
