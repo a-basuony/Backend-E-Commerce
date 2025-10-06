@@ -7,6 +7,7 @@ const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const { resizeImage } = require("../middlewares/resizeImageMiddleware");
 const ApiError = require("../utils/apiError");
+const createToken = require("../utils/createToken");
 
 exports.uploadUserImage = uploadSingleImage("profileImage");
 exports.resizeUserImage = resizeImage("users", "user");
@@ -75,4 +76,27 @@ exports.deleteUser = factory.deleteOne(User);
 exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
   req.params.id = req.user._id;
   next();
+});
+
+// @desc    Update Logged User Password
+// @route   PUT /api/users/updateMyPassword
+// @access  Private / Protected
+exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
+  // 1. update user password based on user payload (req.user._id)
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      password: req.body.newPassword, // it hashed in the pre middleware
+      passwordChangedAt: Date.now(),
+    },
+    { new: true }
+  );
+
+  // 2. Generate token
+  const token = createToken(user._id);
+  res.status(200).json({
+    message: "password has been changed",
+    data: user,
+    token,
+  });
 });

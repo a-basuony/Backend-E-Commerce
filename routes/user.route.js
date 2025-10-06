@@ -9,6 +9,7 @@ const {
   resizeUserImage,
   changePassword,
   getLoggedUserData,
+  updateLoggedUserPassword,
 } = require("../controllers/user.controller");
 
 const {
@@ -24,11 +25,17 @@ const { protect, allowTo } = require("../controllers/auth.controller");
 const router = express.Router();
 
 router.get("/getMe", protect, getLoggedUserData, getUser);
+router.get(
+  "/updateMyPassword",
+  protect,
+  changePasswordValidators,
+  updateLoggedUserPassword
+);
 
-// 🔐 Apply protection & role restriction for all routes below
+//  Apply protection & role restriction for all routes below
 router.use(protect, allowTo("admin", "manager"));
 
-// 📍 /api/v1/users
+//  /api/v1/users
 router
   .route("/")
   .get(getUsers)
@@ -40,7 +47,7 @@ router
     createUser
   );
 
-// 📍 /api/v1/users/:id
+// /api/v1/users/:id
 router
   .route("/:id")
   .get(getUserValidators, getUser)
@@ -53,7 +60,7 @@ router
   )
   .delete(allowTo("admin"), deleteUserValidators, deleteUser);
 
-// 📍 /api/v1/users/changePassword/:id
+// /api/v1/users/changePassword/:id
 router.put(
   "/changePassword/:id",
   allowTo("admin"),
