@@ -219,7 +219,10 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   }
 
   // 3. Update password
-  user.password = await bcrypt.hash(req.body.password, 12);
+  // user.password = await bcrypt.hash(req.body.password, 12);
+  // because we hash the password in the pre middleware mongoose
+  user.password = req.body.password;
+
   user.passwordChangedAt = Date.now();
   // 4. Clear reset token
   user.passwordResetToken = undefined;
