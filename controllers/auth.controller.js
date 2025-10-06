@@ -200,3 +200,41 @@ exports.verifyResetCode = asyncHandler(async (req, res, next) => {
     message: "Reset code verified",
   });
 });
+
+//@desc    Reset Password
+//@route   PUT /api/v1/auth/resetPassword
+//@access  Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // 1. Check if user exists
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(new ApiError("User not found for this email", 404));
+  }
+  // 2. Check if reset code is valid
+  if (!user.passwordResetVerified) {
+    return next(new ApiError("Reset code not verified", 400));
+  }
+
+  // 3. Update password
+  user.password = await bcrypt.hash(req.body.password, 12);
+  user.passwordChangedAt = Date.now();
+  // 4. Clear reset token
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordResetVerified = undefined;
+
+  await user.save();
+
+  // 5. generate token
+  const token = createToken(user._id);
+
+  res.status(200).json({
+    message: "Password reset successful",
+    status: "success",
+    data: user,
+    token,
+  });
+});
