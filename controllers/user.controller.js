@@ -68,3 +68,11 @@ exports.updateUser = factory.updateOne(User, {
 // @route   DELETE /api/users/:id
 // @access  Private/admin
 exports.deleteUser = factory.deleteOne(User);
+
+// @desc    Get Logged User Data
+// @route   GET /api/users/getMe
+// @access  Private / Protected
+exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+});
