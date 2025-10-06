@@ -127,7 +127,7 @@ exports.allowTo = (...allowedRoles) =>
   });
 
 //@desc    Forget Password
-//@route   POST /api/v1/auth/forget-password
+//@route   POST /api/v1/auth/forgotPassword
 //@access  Public
 exports.forgetPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
@@ -171,5 +171,32 @@ exports.forgetPassword = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "Reset code sent to email",
+  });
+});
+
+//@desc    Verify reset code
+//@route   POST /api/v1/auth/verifyResetCode
+//@access  Public
+exports.verifyResetCode = asyncHandler(async (req, res, next) => {
+  const hashedPasswordResetToken = crypto
+    .createHash("sha256")
+    .update(req.body.resetCode)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashedPasswordResetToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ApiError("Invalid or expired reset code", 400));
+  }
+
+  user.passwordResetVerified = true;
+  await user.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Reset code verified",
   });
 });
