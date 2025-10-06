@@ -1,9 +1,11 @@
+const crypto = require("crypto");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 const User = require("../models/user.model");
 const ApiError = require("../utils/apiError");
+const sendEmail = require("../utils/sendEmail");
 
 const createToken = (id) =>
   jwt.sign({ id: id }, process.env.JWT_SECRET, {
@@ -112,7 +114,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
-// @desc    Restrict to specific roles
+// @desc    Authorize user roles or permissions
 // ["admin", "manager"] or seller
 exports.allowTo = (...allowedRoles) =>
   asyncHandler(async (req, res, next) => {
@@ -123,3 +125,51 @@ exports.allowTo = (...allowedRoles) =>
     }
     next();
   });
+
+//@desc    Forget Password
+//@route   POST /api/v1/auth/forget-password
+//@access  Public
+exports.forgetPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+
+  const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+  // console.log("reset token: " + resetToken);
+
+  const hashedPasswordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // console.log(hashedPasswordResetToken);
+  user.passwordResetToken = hashedPasswordResetToken;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  user.passwordResetVerified = false;
+
+  await user.save();
+
+  try {
+    // Send it to user's email
+    await sendEmail({
+      email: user.email,
+      subject: "Your password reset token (valid for 10 minutes)",
+      message: `Your password reset token is: ${resetToken}.\n\nIf you did not request this, please ignore this email. \n\nThe token will expire in 10 minutes. \n\nBest regards, \nE-Shop App Team. \n\n `,
+    });
+  } catch (error) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordResetVerified = undefined;
+
+    await user.save();
+
+    return next(new ApiError("Email could not be sent", 500));
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Reset code sent to email",
+  });
+});
