@@ -28,7 +28,7 @@ router.get("/getMe", protect, getLoggedUserData, getUser);
 router.get(
   "/updateMyPassword",
   protect,
-  changePasswordValidators,
+  // changePasswordValidators,
   updateLoggedUserPassword
 );
 
