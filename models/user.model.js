@@ -26,10 +26,10 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please add a user password"],
       minlength: [6, "User password must be at least 6 characters long"],
     },
-    passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-    passwordResetVerified: Boolean,
+    // passwordChangedAt: Date,
+    // passwordResetToken: String,
+    // passwordResetExpires: Date,
+    // passwordResetVerified: Boolean,
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -50,16 +50,31 @@ const setImageURL = (document) => {
 };
 
 userSchema.post("init", (document) => {
+  // after run on find, findOne, findOneAndUpdate, findOneAndDelete
   setImageURL(document);
 });
 userSchema.post("save", (document) => {
+  // after run on save or create a document which is creating a new document
   setImageURL(document);
 });
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-
+  console.log("🔥 Hashing password before save..."); // debug
   this.password = await bcrypt.hash(this.password, 12);
+  next();
 });
 
 module.exports = mongoose.model("User", userSchema);
+
+// This pre("save") middleware only runs when using:
+
+// new User() + .save()
+
+// User.create()
+
+// ❌ It does NOT run when you use:
+
+// User.findByIdAndUpdate()
+
+// User.updateOne()

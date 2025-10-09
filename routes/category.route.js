@@ -16,7 +16,7 @@ const {
   createCategoryValidators,
 } = require("../utils/validators/categoryValidators");
 const subCategoryRouter = require("./subcategory.route");
-const { protect, allowTo } = require("../controllers/auth.controller");
+const { protected, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ const router = express.Router();
 router.use("/:categoryId/subcategories", subCategoryRouter);
 
 router.route("/").get(getCategories).post(
-  protect, // check token
+  protected, // check token
   allowTo("admin", "manager"), // check role
   uploadCategoryImage,
   resizeCategoryImage,
@@ -38,7 +38,7 @@ router
   .route("/:id")
   .get(getCategoryValidators, getCategory)
   .put(
-    protect, // check token
+    protected, // check token
     allowTo("admin", "manager"), // check role
     uploadCategoryImage,
     resizeCategoryImage,
@@ -46,7 +46,7 @@ router
     updateCategory
   )
   .delete(
-    protect, // check token
+    protected, // check token
     allowTo("admin"), // check role
     deleteCategoryValidators,
     deleteCategory

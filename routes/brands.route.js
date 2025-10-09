@@ -14,12 +14,12 @@ const {
   updateBrandValidators,
   deleteBrandValidators,
 } = require("../utils/validators/brandValidators");
-const { protect, allowTo } = require("../controllers/auth.controller");
+const { protected, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
 router.route("/").get(getBrands).post(
-  protect, // check token
+  protected, // check token
   allowTo("admin", "manager"), // check role
   uploadBrandImage,
   resizeBrandImage,
@@ -31,7 +31,7 @@ router
   .get(getBrandValidators, getBrand)
   .put(uploadBrandImage, resizeBrandImage, updateBrandValidators, updateBrand)
   .delete(
-    protect, // check token
+    protected, // check token
     allowTo("admin", "manager"), // check role
     deleteBrandValidators,
     deleteBrand
