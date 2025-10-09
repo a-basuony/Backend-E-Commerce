@@ -160,3 +160,48 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
     token,
   });
 });
+
+// @desc    Update Logged User data
+// @route   PUT /api/users/updateMe
+// @access  Private / Protected
+exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
+  if (req.body.password || req.body.role || req.body.active) {
+    return next(
+      new ApiError(
+        "You cannot update password, role, or active from this route",
+        400
+      )
+    );
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      name: req.body.name,
+      phone: req.body.phone,
+      email: req.body.email,
+      profileImage: req.body.profileImage,
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    return next(new ApiError("Update failed : Document not found", 404));
+  }
+  res.status(200).json({
+    message: "Document updated",
+    data: user,
+  });
+});
+
+// @desc    Deactivate  Logged User
+// @route   DELETE /api/users/deleteMe
+// @access  Private / Protected
+exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
+  await User.findOneAndUpdate(req.user._id, {
+    active: false,
+  });
+
+  res.status(200).json({
+    message: "Document Deactivated",
+  });
+});
