@@ -55,7 +55,7 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    Protect routes to make sure user is logged in
-exports.protect = asyncHandler(async (req, res, next) => {
+exports.protected = asyncHandler(async (req, res, next) => {
   // 1. Check if token exists in the header and extract it
   let token;
 
@@ -197,43 +197,51 @@ exports.verifyResetCode = asyncHandler(async (req, res, next) => {
   });
 });
 
-//@desc    Reset Password
-//@route   PUT /api/v1/auth/resetPassword
-//@access  Public
+// @desc    Reset Password
+// @route   PUT /api/v1/auth/resetPassword
+// @access  Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-  // 1. Check if user exists
-  const { email } = req.body;
+  const { email, password, confirmPassword } = req.body;
 
+  // 1️⃣ تأكد من وجود المستخدم
   const user = await User.findOne({ email });
-
   if (!user) {
     return next(new ApiError("User not found for this email", 404));
   }
-  // 2. Check if reset code is valid
+
+  // 2️⃣ تأكد إن الكود تم التحقق منه
   if (!user.passwordResetVerified) {
     return next(new ApiError("Reset code not verified", 400));
   }
 
-  // 3. Update password
-  // user.password = await bcrypt.hash(req.body.password, 12);
-  // because we hash the password in the pre middleware mongoose
-  user.password = req.body.password;
+  // 3️⃣ تحقق من تطابق كلمتي السر
+  if (password !== confirmPassword) {
+    return next(new ApiError("Passwords do not match", 400));
+  }
 
+  // 4️⃣ حدّث كلمة السر
+  user.password = password; // هيتم تشفيرها تلقائيًا في الـ pre middleware
   user.passwordChangedAt = Date.now();
-  // 4. Clear reset token
-  user.passwordResetToken = undefined;
+
+  // 5️⃣ نظّف بيانات الريسيت القديمة
+  user.passwordResetCode = undefined;
   user.passwordResetExpires = undefined;
   user.passwordResetVerified = undefined;
 
   await user.save();
 
-  // 5. generate token
+  // 6️⃣ أنشئ توكين جديد (يسجله مباشرة)
   const token = createToken(user._id);
 
   res.status(200).json({
-    message: "Password reset successful",
     status: "success",
-    data: user,
+    message: "Password reset successful",
     token,
   });
 });
+
+// {
+//   "email": "ahmed@example.com",
+//   "password": "newStrongPassword123",
+//   "confirmPassword": "newStrongPassword123"
+// }

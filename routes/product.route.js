@@ -14,12 +14,12 @@ const {
   updateProductValidators,
   deleteProductValidators,
 } = require("../utils/validators/productValidator");
-const { protect, allowTo } = require("../controllers/auth.controller");
+const { protected, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
 router.route("/").get(getProducts).post(
-  protect, // check token
+  protected, // check token
   allowTo("admin", "manager"), // check role
   uploadProductImage,
   resizeProductImages,
@@ -31,7 +31,7 @@ router
   .route("/:id")
   .get(getProductValidators, getProduct)
   .put(
-    protect, // check token
+    protected, // check token
     allowTo("admin", "manager"), // check role
     uploadProductImage,
     resizeProductImages,
@@ -39,7 +39,7 @@ router
     updateProduct
   )
   .delete(
-    protect, // check token
+    protected, // check token
     allowTo("admin"), // check role
     deleteProductValidators,
     deleteProduct
