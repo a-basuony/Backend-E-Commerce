@@ -159,3 +159,38 @@ exports.changePasswordValidators = [
     .withMessage("Confirm password is required"),
   validatorMiddleware,
 ];
+
+exports.updateLoggedUserDataValidator = [
+  check("name")
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage("User name must be at least 3 characters long")
+    .isLength({ max: 30 })
+    .withMessage("User name must be less than 30 characters long")
+    .custom((value, { req }) => {
+      req.body.slug = slugify(value);
+      return true;
+    }),
+  check("email")
+    .isEmail()
+    .withMessage("User email is invalid")
+    .toLowerCase()
+    .optional()
+    .custom(async (value, { req }) => {
+      const user = await User.findOne({ email: value });
+      if (user) {
+        throw new Error("User email already exists");
+      }
+      return true;
+    }),
+
+  check("profileImage").optional(),
+  check("phone")
+    .optional()
+    .isMobilePhone(["ar-EG", "ar-SA"])
+    .withMessage(
+      "User phone is invalid only accepted Egy and SA phone numbers"
+    ),
+  validatorMiddleware,
+];

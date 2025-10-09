@@ -10,7 +10,10 @@ const {
   changePassword,
   getLoggedUserData,
   updateLoggedUserPassword,
+  updateLoggedUserData,
+  deleteLoggedUserData,
 } = require("../controllers/user.controller");
+
 const { protected, allowTo } = require("../controllers/auth.controller");
 const {
   createUserValidators,
@@ -18,38 +21,51 @@ const {
   updateUserValidators,
   deleteUserValidators,
   changePasswordValidators,
+  updateLoggedUserDataValidator,
 } = require("../utils/validators/userValidators");
-
-// const { protected, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
-router.get("/getMe", protected, getLoggedUserData, getUser);
+/* ===============================
+   👤 Logged User Routes
+================================= */
+router.use(protected);
+
+// ✅ Get my data
+router.get("/getMe", getLoggedUserData, getUser);
+
+// ✅ Update my password
 router.put(
   "/changeMyPassword",
-  protected,
   getLoggedUserData,
   changePasswordValidators,
   updateLoggedUserPassword
 );
 
-// Apply protection & role restriction for all routes below
+router.delete("/deleteMe", deleteLoggedUserData);
+
+// ✅ Update my profile (without password, role, active)
+router.put("/updateMe", updateLoggedUserDataValidator, updateLoggedUserData);
+
+/* ===============================
+   👑 Admin Routes
+================================= */
 router.use(protected, allowTo("admin", "manager"));
 
-//  /api/v1/users
+// ✅ CRUD routes for admin
 router
   .route("/")
   .get(getUsers)
   .post(uploadUserImage, resizeUserImage, createUserValidators, createUser);
 
-// /api/v1/users/:id
+// ✅ Important: this must come AFTER /updateMe
 router
   .route("/:id")
   .get(getUserValidators, getUser)
   .put(uploadUserImage, resizeUserImage, updateUserValidators, updateUser)
   .delete(deleteUserValidators, deleteUser);
 
-// /api/v1/users/changePassword/:id
+// ✅ Admin change password for specific user
 router.put("/changePassword/:id", changePasswordValidators, changePassword);
 
 module.exports = router;
