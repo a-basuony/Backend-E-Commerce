@@ -42,11 +42,10 @@ router.put(
   updateLoggedUserPassword
 );
 
-router.delete("/deleteMe", deleteLoggedUserData);
-
 // ✅ Update my profile (without password, role, active)
 router.put("/updateMe", updateLoggedUserDataValidator, updateLoggedUserData);
 
+router.get("/deleteMe", deleteLoggedUserData);
 /* ===============================
    👑 Admin Routes
 ================================= */
