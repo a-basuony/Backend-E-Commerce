@@ -14,7 +14,7 @@ exports.deleteOne = (Model) =>
         new ApiError(`Delete failed : SubCategory not found for id: ${id}`, 404)
       );
     }
-    res.status(200).json({
+    res.status(204).json({
       message: `Successfully deleted`,
       data: document,
     });
