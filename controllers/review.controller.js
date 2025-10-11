@@ -13,15 +13,15 @@ exports.getReview = factory.getOne(Review);
 
 // @desc    create review
 // @route   POST /api/v1/reviews
-// @access  Private
+// @access  Private/ user
 exports.createReview = factory.createOne(Review);
 
 // @desc    Update review by ID
 // @route   PUT /api/v1/reviews/:id
-// @access  Private
+// @access  Private / user
 exports.updateReview = factory.updateOne(Review);
 
 // @desc    Delete review by ID
 // @route   DELETE /api/v1/reviews/:id
-// @access  Private
+// @access  Private /  protected /user or admin or manager
 exports.deleteReview = factory.deleteOne(Review);

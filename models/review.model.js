@@ -6,7 +6,6 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       trim: true,
       minLength: [3, "Review title must be at least 3 characters long"],
-      maxLength: [100, "Review title must be less than 100 characters long"],
     },
     rating: {
       type: Number,
