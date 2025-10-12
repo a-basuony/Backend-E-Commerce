@@ -14,9 +14,17 @@ const {
   updateProductValidators,
   deleteProductValidators,
 } = require("../utils/validators/productValidator");
+
+const reviewRouter = require("./review.route");
 const { protected, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
+
+//POST   api/v1/products/:productId/reviews
+//GET    api/v1/products/:productId/reviews
+//GET    api/v1/products/:productId/reviews/reviewId
+// any route like that go to review route
+router.use("/:productId/reviews", reviewRouter);
 
 router.route("/").get(getProducts).post(
   protected, // check token

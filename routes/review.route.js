@@ -5,6 +5,8 @@ const {
   createReview,
   updateReview,
   deleteReview,
+  setFilterObject,
+  setProductIdAndUserIdToBody,
 } = require("../controllers/review.controller");
 
 const { protected, allowTo } = require("../controllers/auth.controller");
@@ -15,11 +17,17 @@ const {
   deleteReviewValidators,
 } = require("../utils/validators/reviewValidators");
 
-const router = express.Router();
+// to enable nested routes
+const router = express.Router({ mergeParams: true });
+// api/v1/products/:productId/reviews
+// from product route => router.use("/:productId/reviews", reviewRouter);
 
-router.route("/").get(getReviews).post(
+//set filter object to req to add filter to mongoose query
+
+router.route("/").get(setFilterObject, getReviews).post(
   protected, // check token
   allowTo("user"), // check role
+  setProductIdAndUserIdToBody,
   createReviewValidators,
   createReview
 );
