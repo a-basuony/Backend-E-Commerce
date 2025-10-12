@@ -117,11 +117,17 @@ exports.createOne = (Model) =>
 //   res.status(201).json({ message: "SubCategory created", data: subCategory });
 // });
 
-exports.getOne = (Model) =>
+exports.getOne = (Model, populateOpts) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
+    // 1) build query
+    let query = Model.findById(id);
+    if (populateOpts) {
+      query = query.populate(populateOpts);
+    }
+    // 2) execute query
+    const document = await query;
 
-    const document = await Model.findById(id);
     if (!document) {
       return next(new ApiError(`Document not found for id: ${id}`, 404));
     }

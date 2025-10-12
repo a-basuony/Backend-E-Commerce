@@ -27,4 +27,25 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ✅ Pre middleware to auto-populate user name & image
+reviewSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "user",
+    select: "name ", // only bring these fields
+  }).populate({
+    path: "product",
+    select: "title -category", // 👈 or 'name imageCover' depending on your product schema
+  });
+  next();
+});
+
+// // ✅ 2. Auto populate after creating (save)
+// reviewSchema.post("save", async (doc, next) => {
+//   await doc.populate([
+//     { path: "user", select: "name profileImg" },
+//     { path: "product", select: "title imageCover" },
+//   ]);
+//   next();
+// });
+
 module.exports = mongoose.model("Review", reviewSchema);

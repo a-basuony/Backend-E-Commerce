@@ -67,7 +67,7 @@ exports.updateReviewValidators = [
         throw new Error(`Invalid review id format ${id}`);
       }
       // check review belong to logged user
-      if (review.user.toString() !== req.user._id) {
+      if (review.user._id.toString() !== req.user._id.toString()) {
         throw new Error("You are not allowed to update this review");
       }
       return true;

@@ -77,7 +77,7 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 productSchema.pre("save", function (next) {
@@ -95,7 +95,7 @@ productSchema.pre(/^find/, function (next) {
   next();
 });
 
-productSchema.post("save", async function (doc, next) {
+productSchema.post("save", async (doc, next) => {
   await doc.populate({ path: "category", select: "name _id" });
   next();
 });
@@ -117,6 +117,12 @@ productSchema.post("init", (document) => {
 
 productSchema.post("save", (document) => {
   setImageURL(document);
+});
+
+productSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "product",
+  localField: "_id",
 });
 
 module.exports = mongoose.model("Product", productSchema);
