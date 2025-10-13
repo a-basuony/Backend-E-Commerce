@@ -5,16 +5,7 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 
 const connectDB = require("./config/db");
-const categoryRouter = require("./routes/category.route");
-const subcategoryRouter = require("./routes/subcategory.route");
-const brandsRouter = require("./routes/brands.route");
-const productRouter = require("./routes/product.route");
-const userRouter = require("./routes/user.route");
-const authRouter = require("./routes/auth.route");
-const ReviewRouter = require("./routes/review.route");
-const wishListRouter = require("./routes/wishList.route");
-const addressRouter = require("./routes/address.route");
-const couponRouter = require("./routes/coupon.route");
+const mountRoutes = require("./routes");
 
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
 
@@ -35,16 +26,7 @@ if (NODE_ENV === "development") {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
-app.use("/api/v1/categories", categoryRouter);
-app.use("/api/v1/subcategories", subcategoryRouter);
-app.use("/api/v1/brands", brandsRouter);
-app.use("/api/v1/products", productRouter);
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/reviews", ReviewRouter);
-app.use("/api/v1/wishlist", wishListRouter);
-app.use("/api/v1/addresses", addressRouter);
-app.use("/api/v1/coupons", couponRouter);
+mountRoutes(app);
 
 // Not Found middleware
 app.use(notFound);
