@@ -122,7 +122,7 @@ exports.deleteReviewValidators = [
       }
       // check review belong to logged user
       if (req.user.role === "user") {
-        if (review.user.toString() !== req.user.id.toString()) {
+        if (review.user._id.toString() !== req.user.id.toString()) {
           throw new Error("You are not allowed to delete this review");
         }
         return true;
