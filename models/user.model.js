@@ -46,6 +46,16 @@ const userSchema = new mongoose.Schema(
         ref: "Product",
       },
     ],
+    addresses: [
+      {
+        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+        alias: String,
+        details: String,
+        phone: String,
+        city: String,
+        postalCode: String,
+      },
+    ],
   },
   { timestamps: true }
 ); // we can add favorites
