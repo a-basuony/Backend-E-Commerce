@@ -12,6 +12,7 @@ const productRouter = require("./routes/product.route");
 const userRouter = require("./routes/user.route");
 const authRouter = require("./routes/auth.route");
 const ReviewRouter = require("./routes/review.route");
+const wishListRouter = require("./routes/wishList.route");
 
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
 
@@ -39,6 +40,7 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/reviews", ReviewRouter);
+app.use("/api/v1/wishlist", wishListRouter);
 
 // Not Found middleware
 app.use(notFound);

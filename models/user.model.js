@@ -39,6 +39,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // child reference one to many
+    wishList: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 ); // we can add favorites
