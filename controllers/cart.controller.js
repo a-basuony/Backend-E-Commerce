@@ -16,7 +16,7 @@ function calcTotalCartPrice(cart) {
 
 // @desc    add to cart
 // @route   POST /api/v1/cart
-// @access  Public / user
+// @access  Private / user
 exports.addToCart = expressAsyncHandler(async (req, res, next) => {
   const { productId, color } = req.body;
   const product = await Product.findById(productId);
@@ -71,9 +71,11 @@ exports.addToCart = expressAsyncHandler(async (req, res, next) => {
 
 // @desc    Get all logged user cart
 // @route   GET /api/v1/cart
-// @access  Public / user
+// @access  Private / user
 exports.getLoggedUserCart = expressAsyncHandler(async (req, res, next) => {
-  const cart = await Cart.findOne({ user: req.user._id });
+  const cart = await Cart.findOne({ user: req.user._id }).populate(
+    "cartItems.productId"
+  );
 
   if (!cart) {
     return next(new ApiError("Cart not found", 404));
@@ -82,7 +84,50 @@ exports.getLoggedUserCart = expressAsyncHandler(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "Cart fetched successfully",
-    results: cart.cartItems.length,
+    numOfCartItems: cart.cartItems.length,
     data: cart,
+  });
+});
+
+// @desc    remove specific cart item
+// @route   GET /api/v1/cart/:id
+// @access  Private / user
+exports.removeSpecificCartItem = expressAsyncHandler(async (req, res, next) => {
+  const { itemId } = req.params;
+  const cart = await Cart.findOneAndUpdate(
+    {
+      user: req.user._id,
+    },
+    {
+      $pull: {
+        cartItems: { _id: itemId },
+      },
+    },
+    { new: true }
+  );
+
+  calcTotalCartPrice(cart);
+  await cart.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Cart item removed successfully",
+    numOfCartItems: cart.cartItems.length,
+    data: cart,
+  });
+});
+
+// @desc    clear logged user cart
+// @route   DELETE /api/v1/cart
+// @access  Private / user
+exports.clearCart = expressAsyncHandler(async (req, res, next) => {
+  const cart = await Cart.findOneAndDelete({ user: req.user._id });
+  if (!cart) {
+    return next(new ApiError("Cart not found", 404));
+  }
+  res.status(200).json({
+    status: "success",
+    message: "Cart cleared successfully",
+    // data: cart,
   });
 });
