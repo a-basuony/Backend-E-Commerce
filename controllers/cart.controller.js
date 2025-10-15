@@ -3,6 +3,7 @@ const expressAsyncHandler = require("express-async-handler");
 
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
+const Coupon = require("../models/coupon.model");
 const ApiError = require("../utils/apiError");
 
 // helper function
@@ -12,6 +13,8 @@ function calcTotalCartPrice(cart) {
   // eslint-disable-next-line no-return-assign
   cart.cartItems.forEach((item) => (total += item.quantity * item.price));
   cart.totalCartPrice = total;
+  cart.totalPriceAfterDiscount = undefined; // reset after any cart change
+  // total price after discount it will not show until apply coupon only
 }
 
 // @desc    add to cart
@@ -73,9 +76,10 @@ exports.addToCart = expressAsyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/cart
 // @access  Private / user
 exports.getLoggedUserCart = expressAsyncHandler(async (req, res, next) => {
-  const cart = await Cart.findOne({ user: req.user._id }).populate(
-    "cartItems.productId"
-  );
+  const cart = await Cart.findOne({ user: req.user._id });
+  // .populate(
+  //   "cartItems.productId"
+  // );
 
   if (!cart) {
     return next(new ApiError("Cart not found", 404));
@@ -129,5 +133,73 @@ exports.clearCart = expressAsyncHandler(async (req, res, next) => {
     status: "success",
     message: "Cart cleared successfully",
     // data: cart,
+  });
+});
+
+// @desc    update cart item quantity
+// @route   PUT /api/v1/cart/:id
+// @access  Private / user
+exports.updateCartItemQuantity = expressAsyncHandler(async (req, res, next) => {
+  const { itemId } = req.params;
+  const { quantity } = req.body;
+  const cart = await Cart.findOne({ user: req.user._id });
+
+  if (!cart) {
+    return next(new ApiError("Cart not found", 404));
+  }
+  const index = cart.cartItems.findIndex(
+    (item) => item._id.toString() === itemId
+  );
+  if (index > -1) {
+    cart.cartItems[index].quantity = quantity;
+  }
+
+  // Update total price or calculate total cart price
+  calcTotalCartPrice(cart);
+  await cart.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Cart item quantity updated successfully",
+    numOfCartItems: cart.cartItems.length,
+    data: cart,
+  });
+});
+
+// @desc    Apply coupon on logged user cart
+// @route   PUT /api/v1/cart/applyCoupon
+// @access  Private / user
+exports.applyCoupon = expressAsyncHandler(async (req, res, next) => {
+  const { couponName } = req.body;
+
+  // 1️⃣ Find valid coupon
+  const coupon = await Coupon.findOne({
+    name: couponName,
+    expire: { $gt: Date.now() },
+  });
+
+  if (!coupon) {
+    return next(new ApiError("Coupon not found", 404));
+  }
+
+  // 2️⃣ Find logged user cart
+  const cart = await Cart.findOne({ user: req.user._id });
+  if (!cart) {
+    return next(new ApiError("Cart not found", 404));
+  }
+
+  // 3️⃣ Calculate discounted price
+  const discount = (cart.totalCartPrice * coupon.discount) / 100;
+  cart.totalPriceAfterDiscount = parseFloat(
+    (cart.totalCartPrice - discount).toFixed(2)
+  );
+
+  // 4️⃣ Update cart
+  await cart.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Coupon applied successfully",
+    data: cart,
   });
 });
