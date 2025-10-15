@@ -68,3 +68,21 @@ exports.addToCart = expressAsyncHandler(async (req, res, next) => {
     data: cart,
   });
 });
+
+// @desc    Get all logged user cart
+// @route   GET /api/v1/cart
+// @access  Public / user
+exports.getLoggedUserCart = expressAsyncHandler(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user._id });
+
+  if (!cart) {
+    return next(new ApiError("Cart not found", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Cart fetched successfully",
+    results: cart.cartItems.length,
+    data: cart,
+  });
+});
