@@ -4,6 +4,7 @@ const Order = require("../models/order.model");
 const Product = require("../models/product.model");
 const Cart = require("../models/cart.model");
 const ApiError = require("../utils/apiError");
+const factory = require("./handlersFactory");
 
 // @desc    create cash order
 // @route   POST /api/v1/orders/cartId
@@ -29,7 +30,11 @@ exports.createCashOrder = expressAsyncHandler(async (req, res, next) => {
   //3. create new order
   const order = await Order.create({
     user: userId,
-    cartItems: cart.cartItems,
+    cartItems: cart.cartItems.map((item) => ({
+      product: item.productId, // should be ObjectId
+      quantity: item.quantity,
+      price: item.price,
+    })),
     shippingAddress: req.body.shippingAddress,
     totalOrderPrice: totalOrderPrice,
   });
@@ -65,55 +70,21 @@ exports.createCashOrder = expressAsyncHandler(async (req, res, next) => {
 //   }
 // }
 
-// -------------
-/// when get single product it will be
+exports.setFilterObject = (req, res, next) => {
+  let filter = {};
+  if (req.user.role === "user") {
+    filter = { user: req.user._id };
+  }
+  req.filterObject = filter;
+  next();
+};
 
-//         "quantity": 20,
-//          "sold": 0,
+// @desc    GET all orders
+// @route   GET /api/v1/orders
+// @access  private / admin
+exports.getAllOrders = factory.getAll(Order);
 
-// after order it will be  => quantity : 18, sold : 2
-
-// ----------- response
-// {
-//     "status": "success",
-//     "message": "Order created successfully",
-//     "data": {
-//         "user": "68ea6ed5afd5e9a36ada3116",
-//         "cartItems": [
-//             {
-//                 "quantity": 1,
-//                 "price": 100,
-//                 "color": "blue",
-//                 "_id": "68f103542e5ab3c98058f690"
-//             },
-//             {
-//                 "quantity": 1,
-//                 "price": 100,
-//                 "color": "red",
-//                 "_id": "68f103652e5ab3c98058f69a"
-//             }
-//         ],
-//         "shippingAddress": {
-//             "details": "123 Street, Downtown",
-//             "city": "Cairo",
-//             "phone": "01123456789",
-//             "postalCode": "11511"
-//         },
-//         "taxPrice": 0,
-//         "shippingPrice": 0,
-//         "totalOrderPrice": 200,
-//         "paymentMethodType": "cash",
-//         "isPaid": false,
-//         "isDelivered": false,
-//         "_id": "68f104d1d5809e526a6c9d97",
-//         "createdAt": "2025-10-16T14:44:33.176Z",
-//         "updatedAt": "2025-10-16T14:44:33.176Z",
-//         "__v": 0
-//     }
-// }
-
-// get logged user cart item after order it will be nothing because cart will be deleted
-
-// when you can apply coupon after add to cart and before order
-// the totalOrderPrice it will be after discount
-// after order you can't apply coupon
+// @desc    GET order by ID
+// @route   GET /api/v1/orders/:id
+// @access  private / user - admin -manager
+exports.getSpecificOrder = factory.getOne(Order);
