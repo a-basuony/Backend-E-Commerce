@@ -88,3 +88,45 @@ exports.getAllOrders = factory.getAll(Order);
 // @route   GET /api/v1/orders/:id
 // @access  private / user - admin -manager
 exports.getSpecificOrder = factory.getOne(Order);
+
+// @desc    Update order paid by id
+// @route   PUT /api/v1/orders/:id/paid
+// @access  private / admin
+exports.updateOrderPaid = expressAsyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return next(new ApiError("Order not found", 404));
+  }
+
+  // update payment
+  order.isPaid = true;
+  order.paidAt = Date.now();
+
+  const updateOrder = await order.save();
+  res.status(200).json({
+    status: "success",
+    message: "Order paid successfully",
+    data: updateOrder,
+  });
+});
+
+// @desc    Update order delivered by id
+// @route   PUT /api/v1/orders/:id/delivered
+// @access  private / admin
+exports.updateOrderDelivered = expressAsyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return next(new ApiError("Order not found", 404));
+  }
+
+  // update delivered
+  order.isDelivered = true;
+  order.deliveredAt = Date.now();
+
+  const updateOrder = await order.save();
+  res.status(200).json({
+    status: "success",
+    message: "Order delivered successfully",
+    data: updateOrder,
+  });
+});

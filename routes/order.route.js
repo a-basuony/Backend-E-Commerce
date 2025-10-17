@@ -4,6 +4,8 @@ const {
   getAllOrders,
   setFilterObject,
   getSpecificOrder,
+  updateOrderPaid,
+  updateOrderDelivered,
 } = require("../controllers/order.controller");
 
 const { protected, allowTo } = require("../controllers/auth.controller");
@@ -15,5 +17,7 @@ router
   .get(allowTo("user", "admin", "manager"), setFilterObject, getAllOrders)
   .post(allowTo("user"), createCashOrder);
 router.route("/:id").get(allowTo("user", "admin", "manager"), getSpecificOrder);
+router.route("/:id/paid").put(allowTo("admin"), updateOrderPaid);
+router.route("/:id/delivered").put(allowTo("admin"), updateOrderDelivered);
 
 module.exports = router;
