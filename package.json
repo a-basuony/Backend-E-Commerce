@@ -36,7 +36,7 @@
     "start:dev": "cross-env NODE_ENV=development nodemon server.js",
     "start:prod": "cross-env NODE_ENV=production node server.js"
   },
-  "description": "��#\u0000 \u0000B\u0000a\u0000c\u0000k\u0000e\u0000n\u0000d\u0000-\u0000E\u0000-\u0000C\u0000o\u0000m\u0000m\u0000e\u0000r\u0000c\u0000e\u0000\r\u0000 \u0000",
+  "description": "Backend E-Commerce API built with Express and MongoDB",
   "keywords": [],
   "author": "",
   "license": "ISC"
