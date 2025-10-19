@@ -179,3 +179,25 @@ exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
     session,
   });
 });
+
+exports.webhookCheckout = expressAsyncHandler(async (req, res, next) => {
+  const signature = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    // Verify the event came from Stripe
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error("⚠️ Webhook signature verification failed.", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    console.log("Order created successfully............");
+    const session = event.data.object;
+  }
+});

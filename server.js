@@ -13,6 +13,7 @@ const connectDB = require("./config/db");
 const mountRoutes = require("./routes");
 
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
+const { webhookCheckout } = require("./controllers/order.controller");
 
 const app = express();
 // to enable other domains to access our API
@@ -23,6 +24,12 @@ app.use(compression());
 if (process.env.NODE_ENV === "production") {
   app.use(helmet());
 }
+
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckout
+);
 
 // Middleware
 app.use(express.json());
