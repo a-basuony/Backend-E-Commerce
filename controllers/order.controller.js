@@ -181,6 +181,10 @@ exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
 });
 
 const createCardOrder = async (session) => {
+  // const cartId = session.client_reference_id
+  // const orderPrice = session.display_items[0].amount / 100;
+  // const user = session.customer_email;
+
   const cartId = session.metadata.cartId;
   const userId = session.metadata.userId;
   const shippingAddress = JSON.parse(session.metadata.shippingAddress);
@@ -190,11 +194,15 @@ const createCardOrder = async (session) => {
   if (!cart) {
     return console.log("Cart not found");
   }
+
+  // const user = await User.findById(userId);
+
   // 2. Calculate order total
   const totalOrderPrice = session.amount_total / 100;
 
   //3. create the order in Mongo DB
   const order = await Order.create({
+    // user: user._id,
     user: userId,
     cartItems: cart.cartItems.map((item) => ({
       product: item.productId, // should be ObjectId
@@ -203,9 +211,31 @@ const createCardOrder = async (session) => {
     })),
     shippingAddress: shippingAddress,
     totalOrderPrice: totalOrderPrice,
+    isPaid: true,
+    paidAt: Date.now(),
+    paymentMethodType: "card",
   });
+
+  if (order) {
+    // 4. Decrease product quantity and increase sold after creating order, decrement product quantity, increment product sold
+    const bulkOption = cart.cartItems.map((item) => ({
+      updateOne: {
+        filter: { _id: item.productId },
+        update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
+      },
+    }));
+
+    if (cart.cartItems.length > 0) {
+      await Product.bulkWrite(bulkOption);
+    }
+    // 5. clear user cart
+    await Cart.deleteOne({ user: userId });
+  }
 };
 
+// @desc    This webhook will run when stripe payment successfully and  paid checkout session is completed
+// @route   POST /webhook-checkout
+// @access  Protected / User
 exports.webhookCheckout = expressAsyncHandler(async (req, res, next) => {
   const signature = req.headers["stripe-signature"];
   let event;
