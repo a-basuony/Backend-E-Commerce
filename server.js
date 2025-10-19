@@ -34,7 +34,8 @@ if (NODE_ENV === "development") {
 }
 
 // http://localhost:8000/uploads/categories/imageName.jpeg
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // Routes
 app.get("/", (req, res) => res.send("✅ API is running"));
