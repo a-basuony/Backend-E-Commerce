@@ -6,12 +6,15 @@ const {
   getSpecificOrder,
   updateOrderPaid,
   updateOrderDelivered,
+  checkoutSession,
 } = require("../controllers/order.controller");
 
 const { protected, allowTo } = require("../controllers/auth.controller");
 
 const router = express.Router();
 router.use(protected);
+
+router.route("/checkout-session").post(allowTo("user"), checkoutSession);
 router
   .route("/")
   .get(allowTo("user", "admin", "manager"), setFilterObject, getAllOrders)

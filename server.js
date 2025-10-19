@@ -4,12 +4,12 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 
+dotenv.config(); // Load env vars first ✅
+
 const connectDB = require("./config/db");
 const mountRoutes = require("./routes");
 
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
-
-dotenv.config(); // Load env vars first ✅
 
 const app = express();
 

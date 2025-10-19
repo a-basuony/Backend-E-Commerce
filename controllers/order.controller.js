@@ -133,7 +133,7 @@ exports.updateOrderDelivered = expressAsyncHandler(async (req, res, next) => {
 });
 
 // @desc    Get checkout session from stripe and send it as response
-// @route   GET /api/v1/orders/checkout-session/cartId
+// @route   GET /api/v1/orders/checkout-session
 // @access  Private / user
 exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
   // 1. get cart depend on logged user or cartId from params
@@ -154,9 +154,14 @@ exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
-        name: req.user.name,
-        amount: totalOrderPrice * 100,
-        currency: "egp",
+        price_data: {
+          currency: "egp",
+          product_data: {
+            name: `Order by ${req.user.name}`,
+            description: "E-commerce order payment", // optional
+          },
+          unit_amount: totalOrderPrice * 100, // amount in cents
+        },
         quantity: 1,
       },
     ],
@@ -164,7 +169,7 @@ exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
     success_url: `${req.protocol}://${req.get("host")}/api/v1/orders`,
     cancel_url: `${req.protocol}://${req.get("host")}/api/v1/cart`,
     customer_email: req.user.email,
-    client_reference_id: req.user._id,
+    client_reference_id: req.user._id.toString(),
     metadata: req.body.shippingAddress,
   });
 
