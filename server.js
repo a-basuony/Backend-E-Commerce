@@ -37,8 +37,8 @@ if (NODE_ENV === "development") {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
-mountRoutes(app);
 app.get("/", (req, res) => res.send("✅ API is running"));
+mountRoutes(app);
 
 // Not Found middleware
 app.use(notFound);
