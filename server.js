@@ -3,6 +3,8 @@ const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const cors = require("cors");
+const compression = require("compression");
 
 dotenv.config(); // Load env vars first ✅
 
@@ -12,6 +14,10 @@ const mountRoutes = require("./routes");
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
 
 const app = express();
+// to enable other domains to access our API
+app.use(cors());
+// to compress responses to speed up requests
+app.use(compression());
 
 // Middleware
 app.use(express.json());
