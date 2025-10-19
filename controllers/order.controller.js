@@ -170,7 +170,11 @@ exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
     cancel_url: `${req.protocol}://${req.get("host")}/api/v1/cart`,
     customer_email: req.user.email,
     client_reference_id: req.user._id.toString(),
-    metadata: req.body.shippingAddress,
+    metadata: {
+      userId: req.user._id.toString(),
+      cartId: cart._id.toString(),
+      shippingAddress: JSON.stringify(req.body.shippingAddress),
+    },
   });
 
   // 4. send response
