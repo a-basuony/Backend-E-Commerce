@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const cors = require("cors");
 const compression = require("compression");
+const helmet = require("helmet");
 
 dotenv.config(); // Load env vars first ✅
 
@@ -18,6 +19,10 @@ const app = express();
 app.use(cors());
 // to compress responses to speed up requests
 app.use(compression());
+// Use helmet middleware
+if (process.env.NODE_ENV === "production") {
+  app.use(helmet());
+}
 
 // Middleware
 app.use(express.json());
