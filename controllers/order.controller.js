@@ -180,6 +180,32 @@ exports.checkoutSession = expressAsyncHandler(async (req, res, next) => {
   });
 });
 
+const createCardOrder = async (session) => {
+  const cartId = session.metadata.cartId;
+  const userId = session.metadata.userId;
+  const shippingAddress = JSON.parse(session.metadata.shippingAddress);
+
+  // 1. get cart depend on Logged user or cartId from params
+  const cart = await Cart.findById(cartId);
+  if (!cart) {
+    return console.log("Cart not found");
+  }
+  // 2. Calculate order total
+  const totalOrderPrice = session.amount_total / 100;
+
+  //3. create the order in Mongo DB
+  const order = await Order.create({
+    user: userId,
+    cartItems: cart.cartItems.map((item) => ({
+      product: item.productId, // should be ObjectId
+      quantity: item.quantity,
+      price: item.price,
+    })),
+    shippingAddress: shippingAddress,
+    totalOrderPrice: totalOrderPrice,
+  });
+};
+
 exports.webhookCheckout = expressAsyncHandler(async (req, res, next) => {
   const signature = req.headers["stripe-signature"];
   let event;
@@ -197,7 +223,12 @@ exports.webhookCheckout = expressAsyncHandler(async (req, res, next) => {
   }
 
   if (event.type === "checkout.session.completed") {
-    console.log("Order created successfully............");
     const session = event.data.object;
+    console.log("💳 Checkout session completed:", session.id);
+
+    // Fulfill the order
+    await createCardOrder(session);
   }
+
+  res.status(200).json({ received: true });
 });
