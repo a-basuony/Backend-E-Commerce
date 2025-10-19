@@ -76,3 +76,7 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   }
 });
+
+// --------------------- EXPORT FOR VERCEL ---------------------
+// ✅ Vercel needs this export instead of app.listen()
+module.exports = app;
