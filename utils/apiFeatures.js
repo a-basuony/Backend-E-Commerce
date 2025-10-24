@@ -58,7 +58,14 @@ class ApiFeatures {
   // 2) Sorting
   sort() {
     if (this.queryStr.sort) {
-      const sortBy = this.queryStr.sort.split(",").join(" ");
+      // Handle array or string safely
+      let sortParam = this.queryStr.sort;
+
+      if (Array.isArray(sortParam)) {
+        sortParam = sortParam.join(","); // join array into single string
+      }
+
+      const sortBy = sortParam.split(",").join(" ");
       this.mongooseQuery = this.mongooseQuery.sort(sortBy);
     } else {
       this.mongooseQuery = this.mongooseQuery.sort("-createdAt");

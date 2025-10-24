@@ -10,7 +10,7 @@ module.exports.resizeImage = (folderName, prefix = "image") =>
 
     const filename = `${prefix}-${uuid()}-${Date.now()}.jpeg`;
 
-    const dir = path.join(__dirname, `../uploads/${folderName}`);
+    const dir = path.join(__dirname, `../public/uploads/${folderName}`);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -19,7 +19,7 @@ module.exports.resizeImage = (folderName, prefix = "image") =>
       .resize(500, 500)
       .toFormat("jpeg")
       .jpeg({ quality: 90 })
-      .toFile(`uploads/${folderName}/${filename}`);
+      .toFile(path.join(dir, filename));
 
     // if you want to save the url of image
     // req.body.image = req.hostname+filename;
