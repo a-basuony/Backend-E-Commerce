@@ -33,11 +33,11 @@ app.use(express.json({ limit: "10kb" })); // parse incoming JSON with a limit of
 // ---------------------------------------------
 
 // Helmet → adds security headers
-app.use(helmet());
+// app.use(helmet());
 
 // Express Mongo Sanitize → prevent NoSQL injection
-app.use(mongoSanitize());
-app.use(xss());
+// app.use(mongoSanitize());
+// app.use(xss());
 
 // HPP → prevent HTTP parameter pollution like: sort=price&sort=name
 app.use(
