@@ -99,7 +99,9 @@ if (NODE_ENV === "development") {
 // ---------------------------------------------
 // 📁 Static Files
 // ---------------------------------------------
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+if (process.env.NODE_ENV === "development") {
+  app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+}
 
 // ---------------------------------------------
 // 🧠 Routes
