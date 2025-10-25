@@ -4,17 +4,26 @@ const path = require("path");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
+const cloudinary = require("../config/cloudinary");
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const document = await Model.findByIdAndDelete(id);
+    const document = await Model.findById(id);
+
     if (!document) {
       return next(
-        new ApiError(`Delete failed : SubCategory not found for id: ${id}`, 404)
+        new ApiError(`Delete failed: Document not found for id: ${id}`, 404)
       );
     }
-    // document.remove();
+
+    // Delete image from Cloudinary if exists
+    if (document.image && document.image.public_id) {
+      await cloudinary.uploader.destroy(document.image.public_id);
+    }
+
+    await Model.findByIdAndDelete(id);
+
     res.status(204).json({
       message: `Successfully deleted`,
       data: document,
@@ -32,7 +41,11 @@ exports.updateOne = (Model, options = {}) =>
       );
     }
 
-    if (req.file && oldDocument.image) {
+    if (
+      req.file &&
+      oldDocument.image &&
+      process.env.NODE_ENV === "development"
+    ) {
       const folder = options.imageFolder || ""; // folder name (e.g., "categories", "products", "brands".)
       const oldImagePath = path.join(
         __dirname,
@@ -41,6 +54,22 @@ exports.updateOne = (Model, options = {}) =>
       fs.unlink(oldImagePath, (err) => {
         if (err) console.log("⚠️ Failed to delete old image:", err.message);
       });
+    }
+
+    // If a new file is uploaded, replace the old Cloudinary image
+    if (req.file) {
+      if (oldDocument.image && oldDocument.image.public_id) {
+        await cloudinary.uploader.destroy(oldDocument.image.public_id);
+      }
+
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: `ecommerce/${Model.modelName.toLowerCase()}`,
+      });
+
+      req.body.image = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
     }
 
     const document = await Model.findByIdAndUpdate(id, req.body, { new: true });
@@ -58,8 +87,23 @@ exports.updateOne = (Model, options = {}) =>
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    const image = req.file;
-    const newDocument = await Model.create(req.body);
+    let imageData = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: `ecommerce/${Model.modelName.toLowerCase()}`,
+      });
+
+      imageData = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
+    }
+
+    const newDocument = await Model.create({
+      ...req.body,
+      image: imageData,
+    });
     if (!newDocument) {
       return next(new ApiError("Create failed : newDocument not found", 404));
     }

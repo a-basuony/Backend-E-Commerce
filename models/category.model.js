@@ -15,9 +15,13 @@ const categorySchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+    // image: {
+    //   type: String,
+    //   // required: [true, "Please add a category image"],
+    // },
     image: {
-      type: String,
-      // required: [true, "Please add a category image"],
+      url: { type: String },
+      public_id: { type: String },
     },
   },
   { timestamps: true } // createdAt and updatedAt
@@ -31,8 +35,12 @@ categorySchema.pre("save", function (next) {
 });
 
 const setImageURL = (doc) => {
-  if (doc.image) {
+  if (doc.image && process.env.NODE_ENV === "development") {
     doc.image = `${process.env.BASE_URL}/uploads/categories/${doc.image}`;
+  }
+  if (doc?.image?.url && !doc.image.url.startsWith("https://")) {
+    // Add BASE_URL only for local dev images
+    doc.image.url = `${process.env.BASE_URL}/uploads/categories/${doc.image.url}`;
   }
 };
 
