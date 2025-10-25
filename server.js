@@ -53,6 +53,9 @@ app.use(
   })
 );
 
+//On Vercel, your API is behind a proxy, so Express sees a forwarded IP header but doesn’t trust it.
+app.set("trust proxy", 1); // ✅ Trust first proxy (Vercel / Cloudflare)
+
 // Rate Limiter → limit repeated requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
