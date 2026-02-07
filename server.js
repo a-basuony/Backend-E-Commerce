@@ -33,8 +33,8 @@ app.use(
   }),
 );
 
-// مهم جداً للتعامل مع طلبات الـ OPTIONS (Preflight)
-app.options("*", cors());
+app.options(/(.*)/, cors());
+
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" })); // parse incoming JSON with a limit of 10kb
