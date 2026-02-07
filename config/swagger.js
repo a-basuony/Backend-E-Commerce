@@ -18,7 +18,7 @@ const options = {
         description: "Development server",
       },
       {
-        url: "https://e-commerce-backend-production-url.com", // Replace with actual production URL
+        url: "https://backend-e-commerce-amber.vercel.app",
         description: "Production server",
       },
     ],
