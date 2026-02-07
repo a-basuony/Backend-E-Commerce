@@ -2,7 +2,7 @@
   "version": 2,
   "headers": [
     {
-      "source": "/api/v1/(.*)",
+      "source": "/api/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Credentials", "value": "true" },
         {
@@ -20,5 +20,14 @@
       ]
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "dest": "server.js" }]
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/server.js"
+    }
+  ]
 }
