@@ -4,7 +4,8 @@ const path = require("path");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
-const cloudinary = require("../config/cloudinary");
+const cloudinaryService = require("../services/cloudinaryService");
+const { v4: uuid } = require("uuid");
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -13,13 +14,16 @@ exports.deleteOne = (Model) =>
 
     if (!document) {
       return next(
-        new ApiError(`Delete failed: Document not found for id: ${id}`, 404)
+        new ApiError(`Delete failed: Document not found for id: ${id}`, 404),
       );
     }
 
     // Delete image from Cloudinary if exists
+    // Support both new object structure and old potentially?
+    // Assuming schema is becoming { url, public_id } or just url?
+    // The service handles cleanup if public_id exists.
     if (document.image && document.image.public_id) {
-      await cloudinary.uploader.destroy(document.image.public_id);
+      await cloudinaryService.deleteImage(document.image.public_id);
     }
 
     await Model.findByIdAndDelete(id);
@@ -37,48 +41,66 @@ exports.updateOne = (Model, options = {}) =>
     const oldDocument = await Model.findById(id);
     if (!oldDocument) {
       return next(
-        new ApiError(`Update failed : Document not found for id: ${id}`, 404)
+        new ApiError(`Update failed : Document not found for id: ${id}`, 404),
       );
     }
 
-    if (
-      req.file &&
-      oldDocument.image &&
-      process.env.NODE_ENV === "development"
-    ) {
-      const folder = options.imageFolder || ""; // folder name (e.g., "categories", "products", "brands".)
-      const oldImagePath = path.join(
-        __dirname,
-        `../uploads/${folder}/${oldDocument.image}`
-      ); // old image path
-      fs.unlink(oldImagePath, (err) => {
-        if (err) console.log("⚠️ Failed to delete old image:", err.message);
-      });
-    }
-
-    // If a new file is uploaded, replace the old Cloudinary image
+    // If a new file is uploaded
     if (req.file) {
-      if (oldDocument.image && oldDocument.image.public_id) {
-        await cloudinary.uploader.destroy(oldDocument.image.public_id);
+      // 1. If we have a buffer (memory storage), upload it
+      let uploadResult;
+
+      // If we are coming from 'resizeImage' middleware, the upload might already be done
+      // and URL set in req.body.image.
+      // BUT 'handlersFactory' is generic.
+
+      // Case A: resizeImage middleware ALREADY processed it.
+      // req.uploadedFileMetadata might exist from my previous change in resizeImageMiddleware
+      if (req.uploadedFileMetadata) {
+        // It's already uploaded. We just need to delete old one if it exists.
+        if (oldDocument.image && oldDocument.image.public_id) {
+          await cloudinaryService.deleteImage(oldDocument.image.public_id);
+        }
+        // req.body.image is already set to URL.
+        // We might want to ensure we save structure { url, public_id } if the model supports it.
+        // For now, let's respect what resizeMiddleware did (set to URL string or whatever).
+        // But if we want to save public_id, we should look at req.uploadedFileMetadata
+        if (req.uploadedFileMetadata.public_id) {
+          req.body.image = {
+            url: req.uploadedFileMetadata.url,
+            public_id: req.uploadedFileMetadata.public_id,
+          };
+        }
       }
+      // Case B: No resize middleware, just raw upload (req.file present but no metadata).
+      else if (req.file.buffer) {
+        try {
+          const publicId = `ecommerce/${Model.modelName.toLowerCase()}-${uuid()}-${Date.now()}`;
+          uploadResult = await cloudinaryService.updateImage(
+            oldDocument.image?.public_id, // old public_id
+            req.file.buffer, // new buffer
+            {
+              folder: `ecommerce/${Model.modelName.toLowerCase()}`,
+              public_id: publicId,
+            },
+          );
 
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: `ecommerce/${Model.modelName.toLowerCase()}`,
-      });
-
-      req.body.image = {
-        url: result.secure_url,
-        public_id: result.public_id,
-      };
+          req.body.image = {
+            url: uploadResult.secure_url,
+            public_id: uploadResult.public_id,
+          };
+        } catch (err) {
+          return next(new ApiError(`Image upload failed: ${err.message}`, 500));
+        }
+      }
     }
 
     const document = await Model.findByIdAndUpdate(id, req.body, { new: true });
     if (!document) {
       return next(
-        new ApiError(`Update failed : Document not found for id: ${id}`, 404)
+        new ApiError(`Update failed : Document not found for id: ${id}`, 404),
       );
     }
-    // document.save();
     res.status(200).json({
       message: "Document updated",
       data: document,
@@ -87,23 +109,41 @@ exports.updateOne = (Model, options = {}) =>
 
 exports.createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
-    let imageData = null;
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: `ecommerce/${Model.modelName.toLowerCase()}`,
-      });
-
-      imageData = {
-        url: result.secure_url,
-        public_id: result.public_id,
-      };
+    // Case A: Upload handled by previous middleware (resizeImage)
+    if (req.uploadedFileMetadata) {
+      if (req.uploadedFileMetadata.public_id) {
+        req.body.image = {
+          url: req.uploadedFileMetadata.url,
+          public_id: req.uploadedFileMetadata.public_id,
+        };
+      }
     }
+    // Case B: Raw upload (buffer) needing handling here
+    else if (req.file && req.file.buffer) {
+      try {
+        const publicId = `ecommerce/${Model.modelName.toLowerCase()}-${uuid()}-${Date.now()}`;
+        const uploadResult = await cloudinaryService.uploadStream(
+          req.file.buffer,
+          {
+            folder: `ecommerce/${Model.modelName.toLowerCase()}`,
+            public_id: publicId,
+          },
+        );
 
-    const newDocument = await Model.create({
-      ...req.body,
-      image: imageData,
-    });
+        req.body.image = {
+          url: uploadResult.secure_url,
+          public_id: uploadResult.public_id,
+        };
+      } catch (err) {
+        return next(new ApiError(`Image upload failed: ${err.message}`, 500));
+      }
+    }
+    // Case C: req.file exists but no buffer? (path) -> This shouldn't happen with memoryStorage,
+    // but if we support legacy diskStorage, we might need logic.
+    // For now assuming memoryStorage as per plan.
+
+    const newDocument = await Model.create(req.body); // req.body should now contain image field if set
+
     if (!newDocument) {
       return next(new ApiError("Create failed : newDocument not found", 404));
     }
@@ -145,7 +185,7 @@ exports.getAll = (Model, modelName = "") =>
 
     const features = new ApiFeatures(
       Model.find(filter), // .populate({ path: "category", select: "name -_id" })
-      req.query
+      req.query,
     )
       .filter()
       .sort()

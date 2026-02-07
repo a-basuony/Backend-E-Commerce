@@ -1,53 +1,52 @@
 const asyncHandler = require("express-async-handler");
-const fs = require("fs");
-const path = require("path");
 const sharp = require("sharp");
 const { v4: uuid } = require("uuid");
-const cloudinary = require("../config/cloudinary");
+const cloudinaryService = require("../services/cloudinaryService");
 
 module.exports.resizeImage = (folderName, prefix = "image") =>
   asyncHandler(async (req, res, next) => {
     if (!req.file) return next();
 
-    const filename = `${prefix}-${uuid()}-${Date.now()}.jpeg`;
+    const filename = `${prefix}-${uuid()}-${Date.now()}`; // No extension in public_id usually
 
-    // ✅ Resize image once
+    // 1. Process image with Sharp
     const buffer = await sharp(req.file.buffer)
       .resize(500, 500)
       .toFormat("jpeg")
       .jpeg({ quality: 90 })
       .toBuffer();
 
-    // ✅ If local (development): save image to /public/uploads
-    if (process.env.NODE_ENV === "development") {
-      const dir = path.join(__dirname, `../public/uploads/${folderName}`);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      await sharp(buffer).toFile(path.join(dir, filename));
+    // 2. Upload to Cloudinary using Service
+    // Note: In a real prod app, you might want to switch based on NODE_ENV,
+    // but for this refactor we are standardizing on Cloudinary as requested.
 
-      // Save local path (useful for local testing)
-      req.body[folderName === "users" ? "profileImage" : "image"] = filename;
-      return next();
+    try {
+      const uploadResult = await cloudinaryService.uploadStream(buffer, {
+        folder: `ecommerce/${folderName}`, // Organized folder structure
+        public_id: filename,
+        resource_type: "image",
+      });
+
+      // 3. Save result to body for controller
+      // Consistent format: { url: string, public_id: string }
+      // Adapting to existing schema if it expects a string, but recommended is object.
+      // For now, let's stick to what the controller might expect but prepare for object.
+
+      // existing controllers seemed to expect just filenameString or simple URL.
+      // Let's attach full object to `req.rawUploadedImage` and mapped field to `req.body`
+
+      req.body[folderName === "users" ? "profileImage" : "image"] =
+        uploadResult.secure_url;
+      // Also attach public_id if the model supports it.
+      // We'll handle Model schema updates in a separate step/check,
+      // but for now let's attach metadata to req if needed later.
+      req.uploadedFileMetadata = {
+        url: uploadResult.secure_url,
+        public_id: uploadResult.public_id,
+      };
+
+      next();
+    } catch (error) {
+      next(error);
     }
-
-    // ✅ If production: upload to Cloudinary
-    const uploadResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: `uploads/${folderName}`,
-          public_id: filename.replace(".jpeg", ""),
-          resource_type: "image",
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      stream.end(buffer);
-    });
-
-    // Save Cloudinary URL
-    req.body[folderName === "users" ? "profileImage" : "image"] =
-      uploadResult.secure_url;
-
-    next();
   });

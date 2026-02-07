@@ -1,8 +1,9 @@
 const sharp = require("sharp");
 const { v4: uuid } = require("uuid");
-const path = require("path");
-const fs = require("fs");
+// const path = require("path"); // Unused if we don't save to disk
+// const fs = require("fs"); // Unused
 const asyncHandler = require("express-async-handler");
+const cloudinaryService = require("../services/cloudinaryService");
 const Product = require("../models/product.model");
 
 const factory = require("./handlersFactory");
@@ -32,44 +33,56 @@ exports.uploadProductImage = uploadMixImages([
 ]);
 
 exports.resizeProductImages = asyncHandler(async (req, res, next) => {
-  // if(!req.files.imageCover || !req.files.images) return next()
   if (!req.files) return next();
 
-  // 1. folder path
-  const dir = path.join(__dirname, "../uploads/products");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true }); // create folder if not exist
-  }
-
-  //2. coverImage
+  // 1. coverImage
   if (req.files.imageCover) {
-    const coverImageName = `product-cover-${uuid()}-${Date.now()}.jpeg`;
-
-    await sharp(req.files.imageCover[0].buffer)
+    const coverImageName = `product-cover-${uuid()}-${Date.now()}`;
+    const buffer = await sharp(req.files.imageCover[0].buffer)
       .resize(2000, 1333)
       .toFormat("jpeg")
       .jpeg({ quality: 90 })
-      .toFile(`uploads/products/${coverImageName}`); // save to folder
+      .toBuffer();
 
-    req.body.imageCover = coverImageName; // save cover image name to body
+    try {
+      const uploadResult = await cloudinaryService.uploadStream(buffer, {
+        folder: `ecommerce/products`,
+        public_id: coverImageName,
+        resource_type: "image",
+      });
+      req.body.imageCover = uploadResult.secure_url;
+    } catch (error) {
+      return next(error);
+    }
   }
 
-  //3. images
+  // 2. images
   if (req.files.images) {
     req.body.images = [];
 
+    // We use Promise.all to wait for all images to be uploaded
     await Promise.all(
-      // we use promise.all to wait for all images to be processed
       req.files.images.map(async (file, index) => {
-        const imageName = `product-${index}-${uuid()}-${Date.now()}.jpeg`;
-        await sharp(file.buffer)
+        const imageName = `product-${index}-${uuid()}-${Date.now()}`;
+        const buffer = await sharp(file.buffer)
           .resize(800, 600)
           .toFormat("jpeg")
           .jpeg({ quality: 90 })
-          .toFile(`uploads/products/${imageName}`); // save to folder
+          .toBuffer();
 
-        req.body.images.push(imageName);
-      })
+        try {
+          const uploadResult = await cloudinaryService.uploadStream(buffer, {
+            folder: `ecommerce/products`,
+            public_id: imageName,
+            resource_type: "image",
+          });
+          req.body.images.push(uploadResult.secure_url);
+        } catch (error) {
+          // If one fails, we might want to capture it, but for now we let it bubble or just log?
+          // Promise.all will reject if one fails.
+          throw error;
+        }
+      }),
     );
   }
 
