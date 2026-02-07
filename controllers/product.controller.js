@@ -4,6 +4,7 @@ const { v4: uuid } = require("uuid");
 // const fs = require("fs"); // Unused
 const asyncHandler = require("express-async-handler");
 const cloudinaryService = require("../services/cloudinaryService");
+const ApiError = require("../utils/apiError");
 const Product = require("../models/product.model");
 
 const factory = require("./handlersFactory");

@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const sharp = require("sharp");
 const { v4: uuid } = require("uuid");
 const cloudinaryService = require("../services/cloudinaryService");
+const ApiError = require("../utils/apiError");
 
 module.exports.resizeImage = (folderName, prefix = "image") =>
   asyncHandler(async (req, res, next) => {
