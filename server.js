@@ -24,7 +24,17 @@ const app = express();
 // ---------------------------------------------
 // 🌍 Core Middlewares
 // ---------------------------------------------
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000"], //  "https://your-frontend-domain.com"
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    credentials: true,
+  }),
+);
+
+// مهم جداً للتعامل مع طلبات الـ OPTIONS (Preflight)
+app.options("*", cors());
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" })); // parse incoming JSON with a limit of 10kb
@@ -50,7 +60,7 @@ app.use(
       "color",
       "size",
     ],
-  })
+  }),
 );
 
 //On Vercel, your API is behind a proxy, so Express sees a forwarded IP header but doesn’t trust it.
@@ -87,7 +97,7 @@ app.get("/api/v1/csrf-token", (req, res) => {
 app.post(
   "/webhook-checkout",
   express.raw({ type: "application/json" }),
-  webhookCheckout
+  webhookCheckout,
 );
 
 // ---------------------------------------------
