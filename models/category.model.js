@@ -35,11 +35,10 @@ categorySchema.pre("save", function (next) {
 });
 
 const setImageURL = (doc) => {
-  if (doc.image && process.env.NODE_ENV === "development") {
-    doc.image = `${process.env.BASE_URL}/uploads/categories/${doc.image}`;
-  }
-  if (doc?.image?.url && !doc.image.url.startsWith("https://")) {
-    // Add BASE_URL only for local dev images
+  if (!doc.image) return;
+
+  // only modify image.url if it's not already a full Cloudinary link
+  if (doc.image.url && !doc.image.url.startsWith("http")) {
     doc.image.url = `${process.env.BASE_URL}/uploads/categories/${doc.image.url}`;
   }
 };
