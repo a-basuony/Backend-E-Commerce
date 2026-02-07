@@ -57,12 +57,15 @@ const userSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 ); // we can add favorites
 
 const setImageURL = (document) => {
   if (document.profileImage) {
-    document.profileImage = `${process.env.BASE_URL}/uploads/users/${document.profileImage}`;
+    const imageUrl = `${process.env.BASE_URL || "http://localhost:8000"}/uploads/users/${document.profileImage}`;
+    if (!document.profileImage.startsWith("http")) {
+      document.profileImage = imageUrl;
+    }
   }
 };
 

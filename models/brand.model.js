@@ -19,7 +19,7 @@ const brandSchema = new mongoose.Schema(
       default: "no-image.jpg",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 brandSchema.pre("save", function (next) {
@@ -31,7 +31,10 @@ brandSchema.pre("save", function (next) {
 
 const setImageURL = (doc) => {
   if (doc.image) {
-    doc.image = `${process.env.BASE_URL}/uploads/brands/${doc.image}`;
+    const imageUrl = `${process.env.BASE_URL || "http://localhost:8000"}/uploads/brands/${doc.image}`;
+    if (!doc.image.startsWith("http")) {
+      doc.image = imageUrl;
+    }
   }
 };
 

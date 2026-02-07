@@ -24,7 +24,7 @@ const categorySchema = new mongoose.Schema(
       public_id: { type: String },
     },
   },
-  { timestamps: true } // createdAt and updatedAt
+  { timestamps: true }, // createdAt and updatedAt
 );
 
 categorySchema.pre("save", function (next) {
@@ -39,7 +39,8 @@ const setImageURL = (doc) => {
 
   // only modify image.url if it's not already a full Cloudinary link
   if (doc.image.url && !doc.image.url.startsWith("http")) {
-    doc.image.url = `${process.env.BASE_URL}/uploads/categories/${doc.image.url}`;
+    const baseUrl = process.env.BASE_URL || "http://localhost:8000";
+    doc.image.url = `${baseUrl}/uploads/categories/${doc.image.url}`;
   }
 };
 
