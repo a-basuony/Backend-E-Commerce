@@ -35,55 +35,50 @@ exports.uploadProductImage = uploadMixImages([
 exports.resizeProductImages = asyncHandler(async (req, res, next) => {
   if (!req.files) return next();
 
-  // 1. coverImage
-  if (req.files.imageCover) {
-    const coverImageName = `product-cover-${uuid()}-${Date.now()}`;
-    const buffer = await sharp(req.files.imageCover[0].buffer)
-      .resize(2000, 1333)
-      .toFormat("jpeg")
-      .jpeg({ quality: 90 })
-      .toBuffer();
+  try {
+    // 1. coverImage
+    if (req.files.imageCover) {
+      const coverImageName = `product-cover-${uuid()}-${Date.now()}`;
+      const buffer = await sharp(req.files.imageCover[0].buffer)
+        .resize(2000, 1333)
+        .toFormat("jpeg")
+        .jpeg({ quality: 90 })
+        .toBuffer();
 
-    try {
       const uploadResult = await cloudinaryService.uploadStream(buffer, {
         folder: `ecommerce/products`,
         public_id: coverImageName,
         resource_type: "image",
       });
       req.body.imageCover = uploadResult.secure_url;
-    } catch (error) {
-      return next(error);
     }
-  }
 
-  // 2. images
-  if (req.files.images) {
-    req.body.images = [];
+    // 2. images
+    if (req.files.images) {
+      req.body.images = [];
 
-    // We use Promise.all to wait for all images to be uploaded
-    await Promise.all(
-      req.files.images.map(async (file, index) => {
-        const imageName = `product-${index}-${uuid()}-${Date.now()}`;
-        const buffer = await sharp(file.buffer)
-          .resize(800, 600)
-          .toFormat("jpeg")
-          .jpeg({ quality: 90 })
-          .toBuffer();
+      // Use Promise.all securely
+      await Promise.all(
+        req.files.images.map(async (file, index) => {
+          const imageName = `product-${index}-${uuid()}-${Date.now()}`;
+          const buffer = await sharp(file.buffer)
+            .resize(800, 600)
+            .toFormat("jpeg")
+            .jpeg({ quality: 90 })
+            .toBuffer();
 
-        try {
           const uploadResult = await cloudinaryService.uploadStream(buffer, {
             folder: `ecommerce/products`,
             public_id: imageName,
             resource_type: "image",
           });
           req.body.images.push(uploadResult.secure_url);
-        } catch (error) {
-          // If one fails, we might want to capture it, but for now we let it bubble or just log?
-          // Promise.all will reject if one fails.
-          throw error;
-        }
-      }),
-    );
+        }),
+      );
+    }
+  } catch (error) {
+    console.error("❌ Image Processing/Upload Error:", error);
+    return next(new ApiError(`Image upload failed: ${error.message}`, 500));
   }
 
   next();

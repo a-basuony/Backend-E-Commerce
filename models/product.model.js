@@ -105,7 +105,10 @@ productSchema.post("save", async (doc, next) => {
 });
 
 const setImageURL = (document) => {
-  const baseUrl = process.env.BASE_URL || "http://localhost:8000";
+  let baseUrl = process.env.BASE_URL;
+  if (!baseUrl || baseUrl === "undefined" || baseUrl === "null") {
+    baseUrl = "http://localhost:8000";
+  }
 
   if (document.imageCover && !document.imageCover.startsWith("http")) {
     document.imageCover = `${baseUrl}/uploads/products/${document.imageCover}`;

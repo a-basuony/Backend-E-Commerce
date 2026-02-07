@@ -124,9 +124,11 @@ if (NODE_ENV === "development") {
 // ---------------------------------------------
 // 📁 Static Files
 // ---------------------------------------------
-if (process.env.NODE_ENV === "development") {
-  app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
-}
+// ---------------------------------------------
+// 📁 Static Files
+// ---------------------------------------------
+// Always serve uploads to ensure local legacy images work even if in 'production' mode locally
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // ---------------------------------------------
 // 🧠 Routes
@@ -150,6 +152,9 @@ connectDB()
   .then(() => {
     server = app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT} and Database connected`);
+      console.log(
+        `ℹ️  Base URL: ${process.env.BASE_URL || "Not set (Using localhost)"}`,
+      );
     });
   })
   .catch((error) => {

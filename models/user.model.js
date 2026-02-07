@@ -62,7 +62,11 @@ const userSchema = new mongoose.Schema(
 
 const setImageURL = (document) => {
   if (document.profileImage) {
-    const imageUrl = `${process.env.BASE_URL || "http://localhost:8000"}/uploads/users/${document.profileImage}`;
+    let baseUrl = process.env.BASE_URL;
+    if (!baseUrl || baseUrl === "undefined" || baseUrl === "null") {
+      baseUrl = "http://localhost:8000";
+    }
+    const imageUrl = `${baseUrl}/uploads/users/${document.profileImage}`;
     if (!document.profileImage.startsWith("http")) {
       document.profileImage = imageUrl;
     }

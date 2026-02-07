@@ -47,6 +47,9 @@ module.exports.resizeImage = (folderName, prefix = "image") =>
 
       next();
     } catch (error) {
-      next(error);
+      console.error("❌ Resize Middleware Error:", error);
+      // Assuming ApiError is defined or imported elsewhere in the project
+      // If not, you might need to adjust this line to a standard Error or import ApiError.
+      return next(new ApiError(`Image upload failed: ${error.message}`, 500));
     }
   });

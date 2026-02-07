@@ -32,12 +32,23 @@ const globalError = (err, req, res, next) => {
     });
   } else {
     // Production
-    err = handleJwtError(err);
-    console.error("🔥 Error:", err.message);
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
+    // Allow logging of errors in production for now to debug Vercel issues
+    console.error("🔥 Error (Production):", err);
+    console.error("🔥 Stack (Production):", err.stack);
+
+    // Send generic message unless it's operational
+    if (err.isOperational) {
+      res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    } else {
+      // Programming or other unknown error: don't leak details to client
+      res.status(500).json({
+        status: "error",
+        message: "Something went wrong!",
+      });
+    }
   }
 };
 
