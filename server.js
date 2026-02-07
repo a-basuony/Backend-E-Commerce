@@ -18,6 +18,8 @@ const connectDB = require("./config/db");
 const mountRoutes = require("./routes");
 const { notFound, globalError } = require("./middlewares/errorMiddleware");
 const { webhookCheckout } = require("./controllers/order.controller");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
 
 const app = express();
 
@@ -134,6 +136,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 // 🧠 Routes
 // ---------------------------------------------
 app.get("/", (req, res) => res.send("✅ API is running"));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 mountRoutes(app);
 
 // ---------------------------------------------
