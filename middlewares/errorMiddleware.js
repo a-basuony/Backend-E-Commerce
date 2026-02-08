@@ -11,16 +11,6 @@ const globalError = (err, req, res, next) => {
 
   const env = process.env.NODE_ENV || "development";
 
-  const handleJwtError = (err) => {
-    if (err.name === "JsonWebTokenError") {
-      return new ApiError("Invalid token. Please login again.", 401);
-    }
-    if (err.name === "TokenExpiredError") {
-      return new ApiError("Your token has expired. Please login again.", 401);
-    }
-    return err;
-  };
-
   if (env === "development") {
     console.error("🔥 Error:", err);
 
@@ -33,8 +23,13 @@ const globalError = (err, req, res, next) => {
   } else {
     // Production
     // Allow logging of errors in production for now to debug Vercel issues
-    console.error("🔥 Error (Production):", err);
-    console.error("🔥 Stack (Production):", err.stack);
+    // console.error("🔥 Error (Production):", err);
+    // console.error("🔥 Stack (Production):", err.stack);
+
+    if (err.name === "JsonWebTokenError")
+      err = new ApiError("Invalid token. Please login again.", 401);
+    if (err.name === "TokenExpiredError")
+      err = new ApiError("Your token has expired. Please login again.", 401);
 
     // Send generic message unless it's operational
     if (err.isOperational) {
@@ -44,6 +39,7 @@ const globalError = (err, req, res, next) => {
       });
     } else {
       // Programming or other unknown error: don't leak details to client
+      console.error("🔥 Error (Production):", err);
       res.status(500).json({
         status: "error",
         message: "Something went wrong!",
