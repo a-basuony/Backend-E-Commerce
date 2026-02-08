@@ -26,17 +26,38 @@ const app = express();
 // ---------------------------------------------
 // 🌍 Core Middlewares
 // ---------------------------------------------
+// أضف هذا الـ Middleware قبل الـ Routes مباشرة
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://happy-shop-frontend-xi.vercel.app",
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  );
 
+  // مهم جداً للرد على طلب الـ Preflight بـ 200 OK
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 // 1. Trust Proxy - ضروري جداً لعمل الكوكيز على Vercel
 app.set("trust proxy", 1);
 
 // 2. Dynamic CORS Configuration
 const allowedOrigins = [
+  "http://localhost:3000",
   "http://localhost:5173",
+  "https://happy-shop-frontend-xi.vercel.app",
   "https://e-commerce-full-stack-mern.vercel.app",
-  process.env.CLIENT_URL,
-].filter(Boolean); // يحذف أي قيم undefined
-
+].filter(Boolean);
 const corsOptions = {
   origin: function (origin, callback) {
     if (
