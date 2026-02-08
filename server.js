@@ -26,35 +26,43 @@ const app = express();
 // ---------------------------------------------
 // 🌍 Core Middlewares
 // ---------------------------------------------
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "https://backend-e-commerce-amber.vercel.app",
-      ];
-      // السماح بالطلبات اللي ملهاش origin (زي الـ Mobile apps أو Postman)
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-CSRF-Token",
-      "X-Requested-With",
-    ],
-    credentials: true,
-  }),
-);
 
-// ✅ Enable Pre-Flight Across All Routes
-app.options("*", cors());
+// 1. Trust Proxy - ضروري جداً لعمل الكوكيز على Vercel
+app.set("trust proxy", 1);
+
+// 2. Dynamic CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://e-commerce-full-stack-mern.vercel.app",
+  process.env.CLIENT_URL,
+].filter(Boolean); // يحذف أي قيم undefined
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-CSRF-Token",
+    "X-Requested-With",
+    "Accept",
+    "Origin", // ضروري جداً
+  ],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(compression());
 app.use(cookieParser());
@@ -65,6 +73,7 @@ app.use(express.json({ limit: "10kb" })); // parse incoming JSON with a limit of
 
 // Helmet → adds security headers
 // app.use(helmet());
+// app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // Express Mongo Sanitize → prevent NoSQL injection
 // app.use(mongoSanitize());
@@ -90,7 +99,7 @@ app.set("trust proxy", 1); // ✅ Trust first proxy (Vercel / Cloudflare)
 // Rate Limiter → limit repeated requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
-  max: 100, // max requests per IP
+  max: 1000, // max requests per IP
   message: "Too many requests, please try again later.",
   skip: (req) => req.method === "OPTIONS", // ✅ Skip preflight requests
 });
