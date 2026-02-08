@@ -26,57 +26,49 @@ const app = express();
 // 1. Trust Proxy - ضروري لعمل الـ Cookies والـ Rate Limiter على Vercel
 app.set("trust proxy", 1);
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "https://happy-shop-frontend-xi.vercel.app",
-  "https://happy-shop-frontend-731j47qkk-ahmed-basuonys-projects.vercel.app",
-  "https://happy-shop-frontend-git-main-ahmed-basuonys-projects.vercel.app",
-  "https://happy-shop-frontend-lr12p9fpt-ahmed-basuonys-projects.vercel.app",
-  "https://e-commerce-full-stack-mern.vercel.app",
-];
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   "http://localhost:5173",
+//   "https://happy-shop-frontend-xi.vercel.app",
+//   "https://e-commerce-full-stack-mern.vercel.app",
+// ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // يسمح بالروابط الموجودة في القائمة أو أي رابط فرعي من vercel.app لمشروعك
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.includes("vercel.app")
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-CSRF-Token",
-      "X-Requested-With",
-      "Accept",
-      "Origin",
-    ],
-  }),
-);
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     // يسمح بالروابط الموجودة في القائمة أو أي رابط يحتوي على vercel.app (Preview links)
+//     if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true,
+//   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+//   allowedHeaders: [
+//     "Content-Type",
+//     "Authorization",
+//     "X-CSRF-Token",
+//     "X-Requested-With",
+//     "Accept",
+//     "Origin",
+//   ],
+// };
 
-// ✅ التعامل اليدوي مع Preflight لضمان رد 200 OK قبل أي Middleware آخر
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS,PATCH",
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Requested-With, Accept, Origin",
-  );
-  res.sendStatus(200);
-});
+// // تفعيل الـ CORS
+// app.use(cors(corsOptions));
+
+app.use(cors({
+  origin: true, // ✅ دي بتخلي السيرفر يوافق على أي Origin باعت Request أوتوماتيكياً
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "X-CSRF-Token"]
+}));
+
+// واستخدم دي بدل "*" عشان الـ Crash اللي حصل قبل كدة
+app.options(/(.*)/, cors());
+
+// ✅ إصلاح الـ Crash: تغيير "*" إلى Regex متوافق مع path-to-regexp
+app.options(/(.*)/, cors(corsOptions));
 
 app.use(compression());
 app.use(cookieParser());
@@ -85,7 +77,7 @@ app.use(cookieParser());
 app.post(
   "/webhook-checkout",
   express.raw({ type: "application/json" }),
-  webhookCheckout,
+  webhookCheckout
 );
 
 app.use(express.json({ limit: "10kb" }));
@@ -96,20 +88,13 @@ app.use(express.json({ limit: "10kb" }));
 
 app.use(
   hpp({
-    whitelist: [
-      "category",
-      "brand",
-      "price",
-      "ratingsAverage",
-      "color",
-      "size",
-    ],
-  }),
+    whitelist: ["category", "brand", "price", "ratingsAverage", "color", "size"],
+  })
 );
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 2000, // رفعت الحد لضمان عدم حدوث 429 أثناء التنقل السريع في المتجر
+  max: 2000, 
   skip: (req) => req.method === "OPTIONS",
   message: "Too many requests, please try again later.",
 });
@@ -122,13 +107,11 @@ app.use("/api", limiter);
 app.get("/", (req, res) => res.send("✅ API is running"));
 
 app.get("/api/v1/csrf-token", (req, res) => {
-  // ملاحظة: تأكد من تفعيل مكتبة csurf لو ستحتاج الـ token فعلياً
   res.json({ message: "CSRF endpoint ready" });
 });
 
 // Swagger Setup
-const CSS_URL =
-  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
 app.use(
   "/api-docs",
   swaggerUi.serve,
@@ -138,13 +121,11 @@ app.use(
       "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui-bundle.min.js",
       "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui-standalone-preset.min.js",
     ],
-  }),
+  })
 );
 
-// ملفات المرفوعات
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
-// تحميل الروابط الأساسية
 mountRoutes(app);
 
 // ❌ Error Handling
@@ -168,7 +149,6 @@ connectDB()
     process.exit(1);
   });
 
-// 🔥 Process Handlers
 process.on("unhandledRejection", (err) => {
   console.error(`💥 Unhandled Rejection: ${err.message}`);
   if (server) server.close(() => process.exit(1));
