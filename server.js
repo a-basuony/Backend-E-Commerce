@@ -22,54 +22,31 @@ const app = express();
 // ---------------------------------------------
 // 🌍 Core Middlewares & CORS Configuration
 // ---------------------------------------------
-
-// 1. Trust Proxy - ضروري لعمل الـ Cookies والـ Rate Limiter على Vercel
+// 1. Trust Proxy
 app.set("trust proxy", 1);
 
-// const allowedOrigins = [
-//   "http://localhost:3000",
-//   "http://localhost:5173",
-//   "https://happy-shop-frontend-xi.vercel.app",
-//   "https://e-commerce-full-stack-mern.vercel.app",
-// ];
-
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     // يسمح بالروابط الموجودة في القائمة أو أي رابط يحتوي على vercel.app (Preview links)
-//     if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   credentials: true,
-//   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-//   allowedHeaders: [
-//     "Content-Type",
-//     "Authorization",
-//     "X-CSRF-Token",
-//     "X-Requested-With",
-//     "Accept",
-//     "Origin",
-//   ],
-// };
-
-// // تفعيل الـ CORS
-// app.use(cors(corsOptions));
+// 2. CORS Configuration
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://happy-shop-frontend-xi.vercel.app",
+  "https://e-commerce-full-stack-mern.vercel.app",
+];
 
 app.use(cors({
-  origin: true, // ✅ دي بتخلي السيرفر يوافق على أي Origin باعت Request أوتوماتيكياً
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "X-CSRF-Token"]
+  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token", "X-Requested-With", "Accept", "Origin"]
 }));
 
-// واستخدم دي بدل "*" عشان الـ Crash اللي حصل قبل كدة
-app.options(/(.*)/, cors());
-
-// ✅ إصلاح الـ Crash: تغيير "*" إلى Regex متوافق مع path-to-regexp
-app.options(/(.*)/, cors(corsOptions));
-
+// حذف سطر app.options المتكرر الذي يسبب الـ Crash
+app.options("*", cors());
 app.use(compression());
 app.use(cookieParser());
 
@@ -138,20 +115,26 @@ app.use(globalError);
 const PORT = process.env.PORT || 8000;
 let server;
 
-connectDB()
-  .then(() => {
-    server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("❌ DB connection error:", error.message);
-    process.exit(1);
-  });
+connectDB(); 
 
-process.on("unhandledRejection", (err) => {
-  console.error(`💥 Unhandled Rejection: ${err.message}`);
-  if (server) server.close(() => process.exit(1));
-});
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+// connectDB()
+//   .then(() => {
+//     server = app.listen(PORT, () => {
+//       console.log(`🚀 Server running on port ${PORT}`);
+//     });
+//   })
+//   .catch((error) => {
+//     console.error("❌ DB connection error:", error.message);
+//     process.exit(1);
+//   });
+
+// process.on("unhandledRejection", (err) => {
+//   console.error(`💥 Unhandled Rejection: ${err.message}`);
+//   if (server) server.close(() => process.exit(1));
+// });
 
 module.exports = app;
