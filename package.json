@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "dependencies": {
+    "@faker-js/faker": "^10.3.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.8.0",
     "colors": "^1.4.0",
@@ -50,7 +51,10 @@
   },
   "scripts": {
     "start:dev": "cross-env NODE_ENV=development nodemon server.js",
-    "start": "cross-env NODE_ENV=production node server.js"
+    "start": "cross-env NODE_ENV=production node server.js",
+    "seed": "node utils/seeders/seed.js",
+    "seed:reset": "node utils/seeders/reset.js",
+    "seed:all": "npm run seed:reset && npm run seed"
   },
   "description": "Backend E-Commerce API built with Express and MongoDB",
   "keywords": [],
