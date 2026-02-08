@@ -32,12 +32,27 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "http://127.0.0.1:3000",
-    ], //  "https://your-frontend-domain.com"
+      "https://backend-e-commerce-amber.vercel.app", // Self-reference sometimes needed
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-CSRF-Token",
+      "X-Requested-With",
+      "Accept",
+      "Accept-Version",
+      "Content-Length",
+      "Content-MD5",
+      "Date",
+      "X-Api-Version",
+    ],
     credentials: true,
   }),
 );
+
+// ✅ Enable Pre-Flight Across All Routes
+app.options("*", cors());
 
 app.use(compression());
 app.use(cookieParser());
