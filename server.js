@@ -31,6 +31,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://happy-shop-frontend-xi.vercel.app",
   "https://happy-shop-frontend-731j47qkk-ahmed-basuonys-projects.vercel.app",
+  "https://happy-shop-frontend-git-main-ahmed-basuonys-projects.vercel.app",
+  "https://happy-shop-frontend-lr12p9fpt-ahmed-basuonys-projects.vercel.app",
   "https://e-commerce-full-stack-mern.vercel.app",
 ];
 
