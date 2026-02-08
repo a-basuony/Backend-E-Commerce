@@ -22,19 +22,23 @@ const app = express();
 // ---------------------------------------------
 // 🌍 Core Middlewares & CORS Configuration
 // ---------------------------------------------
-// 1. Trust Proxy
+
+// 1. Trust Proxy - ضروري جداً لعمل الـ Cookies والـ Rate Limiter على Vercel
 app.set("trust proxy", 1);
 
 // 2. CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:5173",
   "https://happy-shop-frontend-xi.vercel.app",
   "https://e-commerce-full-stack-mern.vercel.app",
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
+    // يسمح بالطلبات التي ليس لها Origin (مثل تطبيقات الموبايل أو Postman) 
+    // أو الروابط الموجودة في القائمة، أو أي رابط فرعي من vercel.app
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -42,11 +46,19 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token", "X-Requested-With", "Accept", "Origin"]
+  allowedHeaders: [
+    "Content-Type", 
+    "Authorization", 
+    "X-CSRF-Token", 
+    "X-Requested-With", 
+    "Accept", 
+    "Origin"
+  ]
 }));
 
-// حذف سطر app.options المتكرر الذي يسبب الـ Crash
+// التعامل مع Pre-flight requests لكل المسارات
 app.options("*", cors());
+
 app.use(compression());
 app.use(cookieParser());
 
@@ -58,6 +70,10 @@ app.post(
 );
 
 app.use(express.json({ limit: "10kb" }));
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 
 // ---------------------------------------------
 // 🧱 Security & Rate Limiting
@@ -81,11 +97,7 @@ app.use("/api", limiter);
 // 🧠 Routes
 // ---------------------------------------------
 
-app.get("/", (req, res) => res.send("✅ API is running"));
-
-app.get("/api/v1/csrf-token", (req, res) => {
-  res.json({ message: "CSRF endpoint ready" });
-});
+app.get("/", (req, res) => res.send("✅ API is running successfully"));
 
 // Swagger Setup
 const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
@@ -103,6 +115,7 @@ app.use(
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
+// تحميل الراوتس
 mountRoutes(app);
 
 // ❌ Error Handling
@@ -112,15 +125,22 @@ app.use(globalError);
 // ---------------------------------------------
 // 🚀 Server + Database
 // ---------------------------------------------
-const PORT = process.env.PORT || 8000;
-let server;
 
-connectDB(); 
+// في Vercel، نقوم بالاتصال بقاعدة البيانات دون انتظار app.listen
+connectDB();
 
+// هذا الجزء يعمل فقط في البيئة المحلية (Local)
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 8000;
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running locally on port ${PORT}`);
+  });
 }
+
+// ضروري جداً لـ Vercel لكي يعرف نقطة الدخول للسيرفر
+module.exports = app;
+
+
 // connectDB()
 //   .then(() => {
 //     server = app.listen(PORT, () => {
@@ -136,5 +156,3 @@ if (process.env.NODE_ENV !== "production") {
 //   console.error(`💥 Unhandled Rejection: ${err.message}`);
 //   if (server) server.close(() => process.exit(1));
 // });
-
-module.exports = app;
