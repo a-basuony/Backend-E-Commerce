@@ -56,8 +56,6 @@ app.use(cors({
   ]
 }));
 
-// التعامل مع Pre-flight requests لكل المسارات
-app.options("*", cors());
 
 app.use(compression());
 app.use(cookieParser());
