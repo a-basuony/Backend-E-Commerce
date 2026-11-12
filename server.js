@@ -3,6 +3,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const cors = require("cors");
+const { createAllowedOrigins, isAllowedOrigin } = require("./config/corsOrigins");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
@@ -27,18 +28,13 @@ const app = express();
 app.set("trust proxy", 1);
 
 // 2. CORS Configuration
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "https://happy-shop-frontend-xi.vercel.app",
-  "https://e-commerce-full-stack-mern.vercel.app",
-];
+const allowedOrigins = createAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS);
 
 app.use(cors({
   origin: function (origin, callback) {
     // يسمح بالطلبات التي ليس لها Origin (مثل تطبيقات الموبايل أو Postman) 
-    // أو الروابط الموجودة في القائمة، أو أي رابط فرعي من vercel.app
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    // Explicitly allow listed browser origins, never every Vercel subdomain.
+    if (isAllowedOrigin(origin, allowedOrigins)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
